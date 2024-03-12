@@ -6,6 +6,44 @@
     <title>Login Page with Bulma</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
     <link rel='stylesheet' type='text/css' href="{{url_for('static', filename='style.css')}}">
+    <style>
+        .custom-btn{
+            font-size: 20px; /* 폰트 크기 조정 */
+            padding: 20px 20px; /* 상하, 좌우 패딩 조정 */
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"
+    integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+    integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
+    crossorigin="anonymous"></script>
+    <script>
+        function login(){
+            let formData = {
+                userId: $('#userId').val(),
+                password: $('#password').val()
+            };
+            $.ajax({
+                type: "POST",
+                url: "/api/login",
+                data: JSON.stringify(formData),
+                contentType: "application/json",
+                dataType: "json",
+                success: function(response) {
+                    if (response.result === "success") {
+                        $.cookie('mytoken', response['token']);
+                        alert('로그인 완료!')
+                        window.location.href = "/"; // 로그인 성공 시 메인 페이지로 리다이렉트
+                    } else {
+                        alert(response.msg); // 로그인 실패 시 메시지 표시
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error:", error);
+                }
+            });
+        }
+    </script>
 </head>
 <body>
     <section class="section">
@@ -31,18 +69,15 @@
             <div class="column is-5-tablet is-4-desktop is-3-widescreen">
                 <form action="" class="box">
                     <div class="field">
-                        <label for="" class="label">Email</label>
+                        <label for="userId" class="label">ID</label>
                         <div class="control has-icons-left">
-                            <input type="email" placeholder="e.g. bobsmith@gmail.com" class="input" required>
-                            <span class="icon is-small is-left">
-                                <i class="fa fa-envelope"></i>
-                            </span>
+                            <input id="userId" type="email" placeholder="" class="input" required>
                         </div>
                     </div>
                     <div class="field">
-                        <label for="" class="label">Password</label>
+                        <label for="password" class="label">Password</label>
                         <div class="control has-icons-left">
-                            <input type="password" placeholder="*******" class="input" required>
+                            <input id="password" type="password" placeholder="*******" class="input" required>
                             <span class="icon is-small is-left">
                                 <i class="fa fa-lock"></i>
                             </span>
@@ -50,15 +85,15 @@
                     </div>
                     
                     <div class="field">
-                        
-                        <button class="button is-success">
+                        <button class="button is-success custom-btn" onclick = "login()">
                             Login
                         </button>
-                        <button class="button is-success">
-                            회원가입
-                            </button>
+                        
                     </div>
                 </form>
+                <div style="text-align: right;">
+                    <a onclick="location.href='/register'">회원가입</a>
+                </div>
             </div>
         </div>
     </section>
