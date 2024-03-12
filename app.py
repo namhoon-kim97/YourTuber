@@ -67,7 +67,24 @@ def home():
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
         user_info = db.user.find_one({"id": payload["id"]})
-        return render_template("index.html", nickname=user_info["nickname"])
+        
+        channels_info = [{'url_link':"https://www.youtube.com/@syukaworld", 'channel_image': "https://yt3.googleusercontent.com/8w2Z1ha57Ya10dqanJzwbYWYfVIOclw7ib3hXKJx9Xa3PlBGZDBRkyMtN83cHmnv78hlEo8tSg=s176-c-k-c0x00ffffff-no-rj-mo", 
+                            'channel_title': "syukaworld", 'youtuber_comment': "economics communicator"},
+                    {'url_link':"https://www.youtube.com/@ChimChakMan_Official", 'channel_image': "https://yt3.googleusercontent.com/C7bTHnoo1S_MRbJXn4VwncNpB87C2aioJC_sKvgM-CGw_xgdxwiz0EFEqzj0SRVz6An2h81T4Q=s176-c-k-c0x00ffffff-no-rj", 
+                            'channel_title': "calm-down-man", 'youtuber_comment': "storyteller who makes audience recieve king"},
+                    {'url_link':"https://www.youtube.com/@syukaworld", 'channel_image': "https://yt3.googleusercontent.com/8w2Z1ha57Ya10dqanJzwbYWYfVIOclw7ib3hXKJx9Xa3PlBGZDBRkyMtN83cHmnv78hlEo8tSg=s176-c-k-c0x00ffffff-no-rj-mo", 
+                            'channel_title': "syukaworld", 'youtuber_comment': "economics communicator"},
+                    {'url_link':"https://www.youtube.com/@ChimChakMan_Official", 'channel_image': "https://yt3.googleusercontent.com/C7bTHnoo1S_MRbJXn4VwncNpB87C2aioJC_sKvgM-CGw_xgdxwiz0EFEqzj0SRVz6An2h81T4Q=s176-c-k-c0x00ffffff-no-rj", 
+                            'channel_title': "calm-down-man", 'youtuber_comment': "storyteller who makes audience recieve king"}]
+        cards = [{'channels_info': channels_info , 
+                'user_nickname': "jungler123",
+                'card_content': "hi I'm eunsik ", 
+                'like_count': 99}, 
+                {'channels_info': channels_info , 
+                'user_nickname': "jungler123",
+                'card_content': "hi I'm eunsik ", 
+                'like_count': 99}]
+        return render_template("index.html", nickname=user_info["nickname"], cards = cards)
     except jwt.ExpiredSignatureError:
         return redirect(url_for("login", msg="로그인 시간이 만료되었습니다."))
     except jwt.exceptions.DecodeError:
