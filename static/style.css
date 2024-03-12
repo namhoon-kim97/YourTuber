@@ -6,7 +6,8 @@
 
 #articleButton {
   float: right;
-  padding-right: 0px;
+  font-size: 20px;
+  padding-right: 15px;
 }
 
 .dotLine {
