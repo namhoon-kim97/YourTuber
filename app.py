@@ -44,7 +44,8 @@ def api_login():
     if result is not None:
         payload = {
             "id": id_receive,
-            "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=5),
+            "exp": datetime.datetime.now(datetime.timezone.utc)
+            + datetime.timedelta(seconds=50),
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
@@ -66,7 +67,7 @@ def home():
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
         user_info = db.user.find_one({"id": payload["id"]})
-        return render_template("index.html", nickname=user_info["nick"])
+        return render_template("index.html", nickname=user_info["nickname"])
     except jwt.ExpiredSignatureError:
         return redirect(url_for("login", msg="로그인 시간이 만료되었습니다."))
     except jwt.exceptions.DecodeError:
