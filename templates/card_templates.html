@@ -1,0 +1,39 @@
+<!-- card_templates.html -->
+<div class="column is-one-third">
+    <div class="card">
+        <div class="card-content">
+            <!-- 카드 제목 -->
+            <p class="title">
+            {{user_nickname}}
+            <span>
+                <button class="button is-white" id="articleButton">❤️{{like_count}}</button>
+            </span>
+            </p>
+            <hr class="has-background-grey-lighter" />
+            <!-- 카드 내용  -->
+            <div class="subtitle">
+            <!-- dv에 있는 내용들 list로 추가-->
+            </div>
+            {% for channel in channels_info %}
+            <!-- 카드 내용  -->
+                <div class="subtitle">
+                <article class="media">
+                    <figure class="media-left">
+                    <p class="image is-64x64">
+                        <img src="{{channel['channel_image']}}" />
+                    </p>
+                    </figure>
+                    <div class="media-content">
+                    <div class="content">
+                        <p>
+                        <!-- channel딕셔너리에서 가져오기 -->
+                        <a href={{channel['url_link']}}><strong>{{channel['channel_title']}}</strong>
+                        </p>
+                    </div>
+                    </div>
+                </article>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div> 

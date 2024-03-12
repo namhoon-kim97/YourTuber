@@ -1,150 +1,55 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>YourTuber</title>
-    <!-- bulma import   -->
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>
-    <link rel ='stylesheet' type='text/css' href="{{url_for('static', filename='style.css')}}">
-  </head>
+{% extends "layout.html" %}
+{% block javascriptfuction %}
+<script>
+  function openModal(modalId) {
+      var modal = document.getElementById(modalId);
+      modal.classList.add('is-active');
+  }
 
-  <body>
-    <section class="section">
-      <!-- upper menu -->
-      <div class="columns is-mobile">
-        <div class="column is-1 is-offset-10">
-          <button class="button is-success" onclick="location.href='/login'">로그인</button>
-          <!-- 로그인 상태면 userNickname보이게 -->
-        </div>
-      </div>
-      <div class="columns is-mobile">
-        <div class="column is-3 is-offset-4" id="logo">
-          <!-- 여기에 로고 -->logo
-        </div>
-      </div>
-      <div class="columns is-mobile">
-        <div class="column is-4 is-offset-10">
-          <button class="button is-primary">글 작성</button>
-        </div>
-      </div>
-      <hr class="has-background-grey-light" />
-
-      <!-- Main content -->
-      <section class="section">
-        <div class="columns is-multiline">
-          <!-- 쌓이게 -->
-          <div class="column is-one-third">
-            <div class="card">
-              <div class="card-content">
-                <!-- 카드 제목 -->
-                <p class="title">
-                  username
-                  <span>
-                    <button class="button is-white" id="articleButton">❤️</button>
-                  </span>
-                </p>
-                <hr class="has-background-grey-lighter" />
-                <!-- 카드 내용  -->
-                <div class="subtitle">
-                  <!-- dv에 있는 내용들 list로 추가-->
-                </div>
-                <!-- 카드 내용  -->
-                <div class="subtitle">
-                  <article class="media">
-                    <figure class="media-left">
-                      <p class="image is-64x64">
-                        <img src="##" />
-                      </p>
-                    </figure>
-                    <div class="media-content">
-                      <div class="content">
-                        <p>
-                          <!-- channel딕셔너리에서 가져오기 -->
-                          <strong> channel['name'] </strong>
-                        </p>
-                      </div>
-                    </div>
-                  </article>
-                </div>
-              </div>
-            </div>
-          </div> 
-          <div class="column is-one-third">
-            <div class="card">
-              <div class="card-content">
-                <!-- 카드 제목 -->
-                <p class="title">
-                  username
-                  <span>
-                    <button class="button is-white" id="articleButton">❤️</button>
-                  </span>
-                </p>
-                <hr class="has-background-grey-lighter" />
-                <!-- 카드 내용  -->
-                <div class="subtitle">
-                  <!-- dv에 있는 내용들 list로 추가-->
-                </div>
-                <!-- 카드 내용  -->
-                <div class="subtitle">
-                  <article class="media">
-                    <figure class="media-left">
-                      <p class="image is-64x64">
-                        <img src="##" />
-                      </p>
-                    </figure>
-                    <div class="media-content">
-                      <div class="content">
-                        <p>
-                          <!-- channel딕셔너리에서 가져오기 -->
-                          <strong> channel['name'] </strong>
-                        </p>
-                      </div>
-                    </div>
-                  </article>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="column is-one-third">
-            <div class="card">
-              <div class="card-content">
-                <!-- 카드 제목 -->
-                <p class="title">
-                  username
-                  <span>
-                    <button class="button is-white is-small" id="articleButton">❤️</button>
-                  </span>
-                </p>
-                <hr class="has-background-grey-lighter" />
-                <!-- 카드 내용  -->
-                <div class="subtitle">
-                  <!-- dv에 있는 내용들 list로 추가-->
-                </div>
-                <!-- 카드 내용  -->
-                <div class="subtitle">
-                  <article class="media">
-                    <figure class="media-left">
-                      <p class="image is-64x64">
-                        <img src="##" />
-                      </p>
-                    </figure>
-                    <div class="media-content">
-                      <div class="content">
-                        <p>
-                          <!-- channel딕셔너리에서 가져오기 -->
-                          <strong> channel['name'] </strong>
-                        </p>
-                      </div>
-                    </div>
-                  </article>
-                </div>
-              </div>
-            </div>
-          </div> 
-        </div>
+  function closeModal(modalId) {
+      var modal = document.getElementById(modalId);
+      modal.classList.remove('is-active');
+  }
+</script>
+{% endblock %}
+{% block login %}
+<div class="columns is-mobile">
+  <div class="column is-offset-11">
+    <button class="button is-success" onclick="location.href='/login'">로그인</button>
+    <!-- 로그인 상태면 userNickname보이게 -->
+  </div>
+</div>
+{% endblock%}
+{% block writecard %}
+<div class="columns is-mobile">
+  <div class="column is-offset-11">
+    <a class="button is-primary is-large" onclick="openModal('card-write')">글 작성</a>
+  </div>
+</div>
+<div class="modal" id="card-write">
+  <div class="modal-background"></div>
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">글 작성</p>
+      <button class="delete" aria-label="close" onclick="closeModal('card-write')"></button>
+    </header>
+    <section class="modal-card-body">
+      <!-- Content ... -->
     </section>
-  </body>
-</html>
+    <footer class="modal-card-foot">
+      <button class="button is-success">작성 완료</button>
+    </footer>
+  </div>
+</div>
+{% endblock%}
+{% block body %}
+  <div class="columns is-multiline">
+    <!-- 쌓이게 -->
+    {% for card in cards %}
+      {% with user_nickname=card['user_nickname'], like_count=card['like_count'], channels_info= card['channels_info'] %}
+        {% include 'card_templates.html' %}
+      {% endwith %}
+    {% endfor %}
+  </div>
+{% endblock %}
+
