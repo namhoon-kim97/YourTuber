@@ -115,6 +115,17 @@ def post_card():
 
     return jsonify({"result": "success"})
 
+@app.route('/delete_card/<user_nick>', methods=['POST'])
+def delete_card(user_nick):
+    db.card.delete_one({"user_nick": user_nick})
+    return redirect(url_for('main'))
+
+ 
+
+@app.route('/like_card/<user_nick>', methods=['POST'])
+def like_card(user_nick):
+    db.card.update_one({"user_nick": user_nick}, {"$inc": {"count": 1}})
+    return redirect(url_for('main'))
 
 if __name__ == "__main__":
     app.run("0.0.0.0", port=5000, debug=True)
