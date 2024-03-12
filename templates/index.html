@@ -4,147 +4,102 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>YourTuber</title>
-    <style>
-      #logo {
-        font-size: 4rem;
-        color: #333;
-        text-align: center;
-      }
-
-      #articleButton {
-        float: right;
-        padding-right: 0px;
-      }
-
-      .dotLine {
-        border: none;
-        border-top: 2px dotted;
-      }
-    </style>
     <!-- bulma import   -->
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"
-    />
+      href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>
+    <link rel ='stylesheet' type='text/css' href="{{url_for('static', filename='style.css')}}">
   </head>
 
   <body>
-    <!-- upper menu -->
-    <div class="columns is-mobile">
-      <div class="column is-1 is-offset-10">
-        <button class="button is-success">로그인</button>
-        <!-- 로그인 상태면 userNickname보이게 -->
-      </div>
-    </div>
-    <div class="columns is-mobile">
-      <div class="column is-3 is-offset-5" id="logo">
-        <!-- 여기에 로고 -->logo
-      </div>
-    </div>
-    <div class="columns is-mobile">
-      <div class="column is-4 is-offset-10">
-        <button class="button is-primary">글 작성</button>
-      </div>
-    </div>
-    <hr class="has-background-grey-light" />
-
-    <!-- Main content -->
     <section class="section">
-      <div class="container">
-        <div class="columns is-multiline">
-          <!-- 쌓이게 -->
-          <div class="column is-one-third">
-            <div class="card">
-              <div class="card-content">
-                <!-- 카드 제목 -->
-                <p class="title">
-                  {{username}}
-                  <span
-                    ><button class="button is-white" id="articleButton">
-                      ❤️
-                      <h6>channelLike여기표기</h6>
-                    </button>
-                  </span>
-                </p>
-                <hr class="has-background-grey-lighter" />
-                <!-- 카드 내용  -->
-                <div class="subtitle">
-                  <!-- dv에 있는 내용들 list로 추가-->
-                </div>
-                <!-- 카드 내용  -->
-                <div class="subtitle">
-                  <article class="media">
-                    <p class="image is-64x64">
-                      <img src="{{ 이미지주소 }}" />
-                    </p>
-                    <div class="content">
-                      <p>
-                        <!-- channel딕셔너리에서 가져오기 -->
-                        <b>{{ channel['name'] }}</b>
-                      </p>
-                    </div>
-                  </article>
-                </div>
-
-                <button class="button is-white" id="articleButton">❌</button>
-                <button class="button is-white" id="articleButton">✏️</button>
-
-                <br />
-              </div>
-            </div>
-          </div>
-
-          <div class="column is-one-third">
-            <div class="card">
-              <div class="card-content">
-                <!-- 카드 제목 -->
-                <p class="title">
-                  {{username}}
-                  <span
-                    ><button class="button is-white" id="articleButton">
-                      ❤️
-                      <h6>channelLike여기표기</h6>
-                    </button>
-                  </span>
-                </p>
-                <hr class="has-background-grey-lighter" />
-                <!-- 카드 내용  -->
-                <div class="subtitle">
-                  <!-- dv에 있는 내용들 list로 추가-->
-                  <!-- 카드 내용  -->
-                  <article class="media">
-                    <p class="image is-64x64">
-                      <img src="{{ 이미지주소 }}" />
-                    </p>
-                    <div class="content">
-                      <p>
-                        <!-- channel딕셔너리에서 가져오기 -->
-                        <b>{{ channel['na me'] }}</b>
-                      </p>
-                    </div>
-                  </article>
-                  <article class="media">
-                    <p class="image is-64x64">
-                      <img src="{{ 이미지주소 }}" />
-                    </p>
-                    <div class="content">
-                      <p>
-                        <!-- channel딕셔너리에서 가져오기 -->
-                        <b>{{ channel['name'] }}</b>
-                      </p>
-                    </div>
-                  </article>
-                </div>
-
-                <button class="button is-white" id="articleButton">❌</button>
-                <button class="button is-white" id="articleButton">✏️</button>
-
-                <br />
-              </div>
-            </div>
-          </div>
+      <!-- upper menu -->
+      <div class="columns is-mobile">
+        <div class="column is-1 is-offset-10">
+          <button class="button is-success" onclick="location.href='/login'">로그인</button>
+          <!-- 로그인 상태면 userNickname보이게 -->
         </div>
       </div>
+      <div class="columns is-mobile">
+        <div class="column is-3 is-offset-4" id="logo">
+          <!-- 여기에 로고 -->logo
+        </div>
+      </div>
+      <div class="columns is-mobile">
+        <div class="column is-4 is-offset-10">
+          <button class="button is-primary">글 작성</button>
+        </div>
+      </div>
+      <hr class="has-background-grey-light" />
+
+      <!-- Main content -->
+      <section class="section">
+          <div class="columns is-multiline">
+            <!-- 쌓이게 -->
+            <div class="column is-one-third">
+              <div class="card">
+                <div class="card-content">
+                  <!-- 카드 제목 -->
+                  <p class="title">
+                    username
+                    <span>
+                      <button class="button is-white" id="articleButton">
+                        ❤️
+                        <h6>channelLike여기표기</h6>
+                      </button>
+                    </span>
+                  </p>
+                  <hr class="has-background-grey-lighter" />
+                  <!-- 카드 내용  -->
+                  <div class="subtitle">
+                    <!-- dv에 있는 내용들 list로 추가-->
+                  </div>
+                  <!-- 카드 내용  -->
+                  <div class="subtitle">
+                    <article class="media">
+                      <figure class="media-left">
+                        <p class="image is-64x64">
+                          <img src="##" />
+                        </p>
+                      </figure>
+                      <div class="media-content">
+                        <div class="content">
+                          <p>
+                            <!-- channel딕셔너리에서 가져오기 -->
+                            <strong> channel['name'] </strong>
+                          </p>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+
+                  <button class="button is-white" id="articleButton">❌</button>
+                  <button class="button is-white" id="articleButton">✏️</button>
+
+                  <br />
+                </div>
+              </div>
+            </div>
+
+            <div class="column is-one-third">
+              <div class="card">
+                <div class="card-content">
+                  <p class="title">Column 2</p>
+                  <p class="subtitle">Content goes here</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="column is-one-third">
+              <div class="card">
+                <div class="card-content">
+                  <p class="title">Column 3</p>
+                  <p class="subtitle">Content goes here</p>
+                </div>
+              </div>
+            </div>
+          </div>
+      </section>
     </section>
   </body>
 </html>
