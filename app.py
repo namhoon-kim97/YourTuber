@@ -73,49 +73,46 @@ def home():
         return redirect(url_for("login", msg="로그인 정보가 존재하지 않습니다."))
 
 
-@app.route("/memo", methods=["POST"])
-def post_article():
-    # 1. 클라이언트로부터 데이터를 받기
-    url_receive = request.form["url_give"]  # 클라이언트로부터 url을 받는 부분
-    comment_receive = request.form[
-        "comment_give"
-    ]  # 클라이언트로부터 comment를 받는 부분
+@app.route("/post", methods=["POST"])
+def post_card():
+    # 1. user로 부터 데이터를 받기
+    user_nickname = request.form["user_nickname"]
+    card_content = request.form["card_content"]
+    youtube_links = request.form["youtube_links"]
+    youtuber_comments = request.form["youtuber_comments"]
 
+    channels_info = []
     # 2. meta tag를 스크래핑하기
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36"
-    }
-    data = requests.get(url_receive, headers=headers)
-    soup = BeautifulSoup(data.text, "html.parser")
+    for url_link, youtuber_comment in zip(youtube_links, youtuber_comments):
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36"
+        }
+        data = requests.get(url_link, headers=headers)
+        soup = BeautifulSoup(data.text, "html.parser")
 
-    og_image = soup.select_one('meta[property="og:image"]')
-    og_title = soup.select_one('meta[property="og:title"]')
-    og_description = soup.select_one('meta[property="og:description"]')
+        og_image = soup.select_one('meta[property="og:image"]')
+        og_title = soup.select_one('meta[property="og:title"]')
 
-    url_title = og_title["content"]
-    url_description = og_description["content"]
-    url_image = og_image["content"]
+        channels_info.append(
+            {
+                "url_link": url_link,
+                "channel_image": og_image["content"],
+                "channel_title": og_title["content"],
+                "youtuber_comment": youtuber_comment,
+            }
+        )
 
-    article = {
-        "url": url_receive,
-        "title": url_title,
-        "desc": url_description,
-        "image": url_image,
-        "comment": comment_receive,
+    card = {
+        "channels_info": channels_info,
+        "user_nickname": user_nickname,
+        "card_content": card_content,
+        "like_count": 0,
     }
 
     # 3. mongoDB에 데이터를 넣기
-    db.youtuber.insert_one(article)
+    db.card.insert_one(card)
 
     return jsonify({"result": "success"})
-
-
-@app.route("/memo", methods=["GET"])
-def read_articles():
-    # 1. mongoDB에서 _id 값을 제외한 모든 데이터 조회해오기 (Read)
-    result = list(db.youtuber.find({}, {"_id": 0}))
-    # 2. articles라는 키 값으로 article 정보 보내주기
-    return jsonify({"result": "success", "articles": result})
 
 
 if __name__ == "__main__":
