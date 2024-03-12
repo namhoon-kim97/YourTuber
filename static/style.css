@@ -1,0 +1,15 @@
+#logo {
+  font-size: 4rem;
+  color: #333;
+  text-align: center;
+}
+
+#articleButton {
+  float: right;
+  padding-right: 0px;
+}
+
+.dotLine {
+  border: none;
+  border-top: 2px dotted;
+}
