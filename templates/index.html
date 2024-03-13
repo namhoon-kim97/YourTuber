@@ -7,7 +7,6 @@
         if (!event.target.matches("button")) {
           const userNickname = cardContent.getAttribute("data-nickname");
           const cardNickname = cardContent.getAttribute("data-cardnickname");
-          console.log(userNickname, cardContent);
           getCarddetail(cardNickname, userNickname);
         }
       });
