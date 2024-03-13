@@ -1,25 +1,30 @@
 {% extends "layout.html" %} {% block javascriptfuction %}
 <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
 <script>
-  $(document).ready(function () {
-    document.querySelectorAll(".card-content").forEach((cardContent) => {
-      cardContent.addEventListener("click", function () {
-        insertCardmodalhtml(cardContent);
-        openModal("card-modal");
+  $(document).ready(function() {
+      document.querySelectorAll('.card-content').forEach((cardContent) => {
+        cardContent.addEventListener('click', function(event) {
+          if (!event.target.matches('button')) {
+              const userNickname = cardContent.getAttribute('data-nickname');
+              const cardNickname = cardContent.getAttribute('data-cardname');
+              insertCardmodalhtml(cardContent, userNickname, cardNickname);
+              openModal('card-modal');
+          }
       });
     });
 
-    document.addEventListener("click", function (event) {
-      var modal = document.querySelector(".modal.is-active");
-      if (modal && modal.contains(event.target)) {
-        $(".card-modal-container").empty();
-        modal.classList.remove("is-active");
+    document.addEventListener('click', function(event) {
+      var modal = document.querySelector('.modal.is-active');
+      if (modal && modal.contains(event.target) && event.target.classList.contains('modal-background')) {
+          $('.card-modal-container').empty();
+          modal.classList.remove('is-active');
       }
     });
   });
 
-  function insertCardmodalhtml(cardContent) {
-    cardNickname = cardContent.querySelector(".title").textContent;
+  function insertCardmodalhtml(cardContent, userNickname, cardNickname) {
+    lick_count = cardContent.querySelector(".emoji-button").textContent;
+    
 
     var images = cardContent.querySelectorAll(".media-left img");
     var urls = cardContent.querySelectorAll(".content a");
@@ -45,11 +50,14 @@
             <header class="modal-card-head">
               <p class="title">
                 ${cardNickname}
-                <span>
-                  <form action="/like_card/${cardNickname}" method="post">
-                    <button type="submit" class="emoji-button" value="like">❤️</button>
-                  </form>
-                </span>
+            <div style="display: flex; justify-content: flex-end;">
+              <span>
+                <button type="submit" class="emoji-button" onclick="likeCard('${userNickname}', '${cardNickname}')">
+                  ${lick_count}
+                </button>
+              </span>
+            </div>
+
               </p>
             </header>
             <section class="modal-card-body">
@@ -159,7 +167,7 @@
     return youtubeChannelRegex.test(url);
   }
 
-  function validCheckandPOST() {
+  function validCheckandPOST(user_nickname) {
     var fieldElement = document.getElementById("cardWritebox");
     var inputElements = fieldElement.querySelectorAll("input");
     var textareaElements = fieldElement.querySelectorAll("textarea");
@@ -195,7 +203,7 @@
         type: "POST",
         url: "/post",
         data: {
-          user_nickname: nickname,
+          user_nickname: user_nickname,
           card_content: cardContent,
           youtube_links: channelUrls,
           youtuber_comments: youtuberComments,
@@ -269,17 +277,17 @@ function correctCard(nickname) {
   });
 }
 
-function likeCard(nickname, userNickname) {
+function likeCard(nickname, card_nickname) {
   $.ajax({
     type: "POST",
     url: "/card/like",
-    data: { nickname: nickname, user_nickname: userNickname },
+    data: { nickname: nickname, card_nickname: card_nickname },
     success: function (response) {
       if (response.result === "success") {
         alert(response.msg);
         location.reload();
       } else {
-        alert("서버 오류!");
+        alert(response.msg);
       }
     },
     error: function (xhr, status, error) {
@@ -289,17 +297,17 @@ function likeCard(nickname, userNickname) {
   });
 }
 
-function unlikeCard(nickname, userNickname) {
+function unlikeCard(nickname, card_nickname) {
   $.ajax({
     type: "POST",
     url: "/card/unlike",
-    data: { nickname: nickname, user_nickname: userNickname },
+    data: { nickname: nickname, card_nickname: card_nickname },
     success: function (response) {
       if (response.result === "success") {
         alert(response.msg);
         location.reload();
       } else {
-        alert("서버 오류!");
+        alert(response.msg);
       }
     },
     error: function (xhr, status, error) {
@@ -401,7 +409,7 @@ function unlikeCard(nickname, userNickname) {
       <!-- Content ... -->
     </section>
     <footer class="modal-card-foot">
-      <button class="button is-success" onclick="validCheckandPOST()">
+      <button class="button is-success" onclick="validCheckandPOST('{{nickname}}')">
         작성 완료
       </button>
     </footer>
@@ -415,7 +423,7 @@ function unlikeCard(nickname, userNickname) {
     {% if loop.index %4 == 1 %}
       <div class="columns is-multiline">
     {% endif %}
-      {% with mylike = mylike, nickname = nickname,card_nickname=card['user_nickname'], like_count=card['like_count'], channels_info= card['channels_info'] %}
+      {% with mylike = mylike, card = card, nickname = nickname,card_nickname=card['user_nickname'], like_count=card['like_count'], channels_info= card['channels_info'] %}
         {% include 'card_templates.html' %}
       {% endwith %}
     {% if loop.index % 4 == 0 %}

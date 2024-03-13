@@ -103,6 +103,12 @@
                 let password = $("#password").val();
                 let confirmPassword = $("#passwordConfirm").val();
 
+                if (password.includes(' ')){
+                    $("#password-feedback").text("비밀번호에는 공백이 포함될 수 없습니다.").css("color", "red");
+                    isPasswordValid = false;
+                    return;
+                }
+
                 // 비밀번호와 비밀번호 확인이 일치하는지 검사
                 if(password !== confirmPassword) {
                     $("#password-feedback").text("비밀번호와 비밀번호 확인이 일치하지 않습니다.").css("color", "red");

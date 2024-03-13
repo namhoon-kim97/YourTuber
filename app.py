@@ -30,13 +30,21 @@ def api_register():
     id_receive = data["userId"]
     nickname_receive = data["nickname"]
     pw_receive = data["password"]  # 여기서 pw받을 때 https로 받아야 안전함.
+    
+    if pw_receive.strip() != pw_receive or ' ' in pw_receive:
+        return (jsonify(
+            {
+                "result": "error",
+                'msg': '비밀번호에 공백을 포함할 수 없습니다.',
+            },
+            ),400,)
 
     if search_nickname_in_db(nickname_receive) or search_userId_in_db(id_receive):
         return (
             jsonify(
                 {
                     "result": "error",
-                    "message": "닉네임 또는 이메일이 이미 사용 중입니다.",
+                    "msg": "닉네임 또는 이메일이 이미 사용 중입니다.",
                 }
             ),
             400,
@@ -123,16 +131,20 @@ def home():
         unsorted_cards = list(db.card.find({}, {'_id': False}))
         cards = sorted(unsorted_cards, reverse=True,
                        key=lambda x: x['like_count'])
-
+        
         user_info = db.user.find_one({"id": payload["id"]})
-        my_like = user_info.get("liked", [])
         nickname = user_info['nickname']
+        
+        for card in cards:
+            card_user = db.user.find_one({"nickname" : card["user_nickname"]})
+            my_like = card_user.get("liked", [])
+            card["is_liked_by_user"] = nickname in my_like
+        
     except:
         nickname = None
-        my_like = []
         user_info = None
 
-    return render_template("index.html", cards=cards, my_like=my_like, user_info=user_info, nickname=nickname)
+    return render_template("index.html", cards=cards, user_info=user_info, nickname=nickname)
 
 
 @app.route("/post", methods=["POST"])
@@ -171,6 +183,7 @@ def post_card():
         "user_nickname": user_nickname,
         "card_content": card_content,
         "like_count": 0,
+        "is_liked_by_user" : False
     }
     # 3. mongoDB에 데이터를 넣기
     db.card.insert_one(card)
@@ -200,32 +213,45 @@ def delete_card(nickname):
     db.card.delete_one({"nickname": nickname})
     return redirect(url_for('home'))
 
+def check_liked(nickname, card_nickname):
+    card_user = db.user.find_one({"nickname" : card_nickname})
+    my_like = card_user.get("liked", [])
+    if nickname in my_like:
+        return True
+    else:
+        return False
 
 @app.route('/card/like', methods=['POST'])
 def like_cards():
     nickname = request.form['nickname']
-    user_nickname = request.form['user_nickname']
-    print(nickname, user_nickname)
-    db.user.update_one(
-        {"nickname": nickname},
-        {"$push": {"liked": user_nickname}},
-        upsert=True)
-    # 카드의 count +=1
-    db.card.update_one({"nickname": nickname},
-                       {"$inc": {"like_count": +1}})
-    return jsonify({'result': 'success', 'msg': '좋아요'})
+    card_nickname = request.form['card_nickname']
+        
+    if check_token_and_redirect() and not check_liked(nickname, card_nickname):
+        db.user.update_one(
+            {"nickname": card_nickname},
+            {"$push": {"liked": nickname}},
+            upsert=True)
+        # 카드의 count +=1
+        db.card.update_one({"user_nickname": card_nickname},
+                        {"$inc": {"like_count": +1}})
+        return jsonify({'result': 'success', 'msg': '좋아요'})
+    else:
+        return jsonify({'result' : 'fail', 'msg' : "로그인을 해주세요"})
 
 
 @app.route('/card/unlike', methods=['POST'])
 def unlike_cards():
     nickname = request.form['nickname']
-    user_nickname = request.form['user_nickname']
-    db.card.update_one({"nickname": user_nickname},
-                       {"$inc": {"like_count": -1}})
-    db.user.update_one(
-        {"nickname": nickname},
-        {"$pull": {"liked": user_nickname}})
-    return jsonify({'result': 'success', 'msg': '이거별로네'})
+    card_nickname = request.form['card_nickname']
+    if check_token_and_redirect() and check_liked(nickname, card_nickname):
+        db.card.update_one({"user_nickname": card_nickname},
+                        {"$inc": {"like_count": -1}})
+        db.user.update_one(
+            {"nickname": card_nickname},
+            {"$pull": {"liked": nickname}})
+        return jsonify({'result': 'success', 'msg': '이거별로네'})
+    else:
+        return jsonify({'result' : 'fail', 'msg' : "로그인을 해주세요"})
 
 
 def search_nickname_in_db(nickname):
