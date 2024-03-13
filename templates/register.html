@@ -38,8 +38,8 @@
                     }
 
                     // 특수 문자 제한 검사 (알파벳, 숫자, -, _만 허용)
-                    if (!/^[a-zA-Z0-9]+$/.test(nickname)) {
-                        $("#nickname-feedback").text("닉네임에는 알파벳, 숫자만 사용할 수 있습니다.").css("color", "red");
+                    if (!/^[a-zA-Z0-9가-힣]+$/.test(nickname)) {
+                        $("#nickname-feedback").text("닉네임에는 알파벳, 숫자, 한글만 사용할 수 있습니다.").css("color", "red");
                         isNicknameValid = false;
                         return;
                     }

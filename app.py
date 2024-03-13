@@ -48,11 +48,35 @@ def api_register():
     )
     return jsonify({"result": "success"})
 
-
+def check_token_and_redirect():
+    token_receive = request.cookies.get("mytoken")
+    if token_receive:
+        try:
+            # 토큰이 유효하면 True 반환
+            jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+            return True
+        except:
+            # 토큰이 유효하지 않으면 False 반환
+            return False
+    else:
+        # 토큰이 없으면 False 반환
+        return False
+    
 @app.route("/register", methods=["GET"])
 def register():
-    return render_template("register.html")
+    # 토큰 검사 후 리다이렉션 또는 회원가입 페이지 렌더링
+    if check_token_and_redirect():
+        return redirect(url_for("home"))
+    else:
+        return render_template("register.html")
 
+@app.route("/login", methods=["GET"])
+def login():
+    # 토큰 검사 후 리다이렉션 또는 로그인 페이지 렌더링
+    if check_token_and_redirect():
+        return redirect(url_for("home"))
+    else:
+        return render_template("login.html")
 
 @app.route("/api/login", methods=["POST"])
 def api_login():
@@ -77,15 +101,9 @@ def api_login():
             {"result": "fail", "msg": "아이디/비밀번호가 올바르지 않습니다."}
         )
 
-
-@app.route("/login", methods=["GET"])
-def login():
-    return render_template("login.html")
-
-
 @app.route("/logout")
 def logout():
-    # 로그아웃 처리를 위해 쿠키 삭제 등의 로직을 추가
+    # 로그아웃 처리를 위해 쿠키 삭제 로직을 추가
     resp = make_response(redirect(url_for("home")))
     resp.delete_cookie("mytoken")
     return resp
@@ -211,13 +229,11 @@ def unlike_cards():
 
 
 def search_nickname_in_db(nickname):
-    print("check nickname db")
     user = db.user.find_one({"nickname": nickname})
     return user is not None
 
 
 def search_userId_in_db(userId):
-    print("check userId db")
     user = db.user.find_one({"id": userId})
     return user is not None
 
