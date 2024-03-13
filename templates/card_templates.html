@@ -1,15 +1,19 @@
-<!-- card_templates.html -->
 <div class="column is-3">
   <div class="card">
-    <div class="card-content" style="padding-bottom: 10px; cursor: pointer">
+    <div
+      class="card-content"
+      style="padding-bottom: 10px; cursor: pointer"
+      data-nickname="{{ nickname }}"
+      data-cardnickname="{{card_nickname}}"
+    >
       <!-- 카드 제목 -->
       <!-- like unlike 모아둠  -->
 
-      {%if user_nickname in my_like%}
+      {%if card.is_liked_by_user%}
       <button
         type="submit"
         class="emoji-button"
-        onclick="unlikeCard('{{ nickname }}', '{{ user_nickname }}')"
+        onclick="unlikeCard('{{ nickname }}', '{{ card_nickname }}')"
       >
         🩷<span style="font-size: 20px"> {{like_count}} </span>
       </button>
@@ -17,7 +21,7 @@
       <button
         type="submit"
         class="emoji-button"
-        onclick="likeCard('{{ nickname }}', '{{ user_nickname }}')"
+        onclick="likeCard('{{ nickname }}', '{{ card_nickname }}')"
       >
         🤍<span style="font-size: 20px"> {{like_count}} </span>
       </button>
@@ -26,8 +30,7 @@
       <!-- like unlike 여기까지 -->
 
       <p class="title">
-        {{nickname}}
-        <span style="font-size: 0.8em">{{user_nickname}} </span>
+        <span style="font-size: 0.8em">{{card_nickname}} </span>
       </p>
       <hr class="has-background-grey-lighter" />
       <!-- 카드 내용  -->
@@ -61,7 +64,7 @@
         class="card-footer"
         style="min-height: 50px; display: flex; align-items: center"
       >
-        {%if nickname == card['user_nickname']%}
+        {%if nickname == card_nickname%}
         <!-- 수정버튼 -->
         <div class="modal" id="card-correct">
           <div class="modal-background"></div>
@@ -80,41 +83,54 @@
                 <div class="control">
                   <textarea
                     class="textarea"
-                    id="card-title"
+                    id="correct-content"
                     placeholder="게시글 수정"
-                  ></textarea>
+                  >
+{{ card['card_content'] }}</textarea
+                  >
                 </div>
+              </div>
+              <hr style="color: rgb(49, 199, 141); border: dot; height: 10px" />
+              <div class="field" id="cardCorrectbox">
+                {% for channel in channels_info %}
+
                 <label class="label">Youtube channel URL</label>
                 <div class="control has-icons-left has-icons-right">
                   <input
                     class="input is-success"
                     type="text"
-                    id="youtube-url"
+                    id="youtube-url-{{ loop.index }}"
                     placeholder="https://www.youtube.com/~~~"
+                    value="{{channel['url_link']}}"
                   />
                   <span class="icon is-small is-left">
                     <i class="fa-brands fa-youtube"></i>
                   </span>
                 </div>
-                <p class="help is-success">This username is available</p>
-                <p class="help is-danger">This username is not available</p>
                 <label class="label">youtuber 소개글</label>
                 <div class="control">
                   <textarea
                     class="textarea"
                     placeholder="소개글 작성"
-                    id="channel-description"
-                  ></textarea>
+                    id="channel-description-{{ loop.index }}"
+                  >
+{{ channel['youtuber_comment'] }}</textarea
+                  >
                 </div>
+                <hr
+                  style="color: rgb(49, 199, 141); border: solid; height: 2px"
+                />
+                {% endfor %}
               </div>
             </section>
             <footer class="modal-card-foot">
               <button
                 class="button is-success"
-                onclick="correctCard('${nickname}')"
+                onclick="correctCard('{{nickname}}')"
               >
                 수정 완료
               </button>
+              <div id="statusMessage" style="display: none"></div>
               <button
                 id="cancelEditButton"
                 class="button"
