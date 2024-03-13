@@ -28,6 +28,7 @@
   function getCarddetail(cardNickname, userNickname) {
     let formData = {
       card_nickname: cardNickname,
+      user_nickname: userNickname,
     };
     $.ajax({
       type: "GET",
@@ -54,18 +55,16 @@
     cardHtml = `<div class="modal is-half" id="card-modal">
           <div class="modal-background"></div>
           <div class="modal-card">
-            <header class="modal-card-head">
+            <header class="modal-card-head" style="display: flex; justify-content: space-between; align-items: center;">
               <p class="title">
                 ${cardDetail["user_nickname"]}
-            <div style="display: flex; justify-content: flex-end;">
-              <span>
-                <button type="submit" class="emoji-button" onclick="likeCard('${userNickname}', '${cardDetail["user_nickname"]}')">
-                  ${cardDetail["like_count"]}
+              </p>
+              <span style="font-size: 35px"> 
+                <button type="submit" class="emoji-button" onclick="${cardDetail['is_liked_by_user'] ? `unlikeCard('${userNickname}', '${cardDetail["user_nickname"]}');` : `likeCard('${userNickname}', '${cardDetail["user_nickname"]}');`}">
+                    ${cardDetail['is_liked_by_user'] ? '🩷' : '🤍'}
+                    ${cardDetail["like_count"]}
                 </button>
               </span>
-            </div>
-
-              </p>
             </header>
             <section class="modal-card-body">
             <p class="modal-cardcontent">
@@ -264,7 +263,6 @@ function correctCard(user_nickname) {
   var fieldElement = document.getElementById("cardCorrectbox");
     var inputElements = fieldElement.querySelectorAll("input");
     var textareaElements = fieldElement.querySelectorAll("textarea");
-    console.log(inputElements,textareaElements);
 
     var cardContent = $("#correct-content").val();
     var channelUrls = [];

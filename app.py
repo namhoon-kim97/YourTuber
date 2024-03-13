@@ -157,8 +157,13 @@ def home():
 @app.route("/get", methods=["GET"])
 def get_card_detail():
     card_nickname = request.args.get("card_nickname")
+    user_nickname = request.args.get("user_nickname")
     
     card_detail = db.card.find_one({"user_nickname": card_nickname}, {'_id': False})
+    card_user = db.user.find_one({"nickname" : card_detail["user_nickname"]})
+    my_like = card_user.get("liked", [])
+    card_detail["is_liked_by_user"] = user_nickname in my_like
+    
     if card_detail:
         return jsonify({"result": "success", "msg": "카드정보 및 썸네일 전송 완료!", "card_detail": card_detail})
     else:
@@ -249,28 +254,59 @@ def correct_card():
     card_content = request.form["card_content"]
     youtube_links = request.form.getlist("youtube_links[]")
     youtuber_comments = request.form.getlist("youtuber_comments[]")
+    
     channels_info = []
+    
+    existing_card = db.card.find_one({"user_nickname": user_nickname})
+    existing_urls = [info["url_link"] for info in existing_card["channels_info"]]
 
     for url_link, youtuber_comment in zip(youtube_links, youtuber_comments):
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36"
-        }
-        data = requests.get(url_link, headers=headers)
-        soup = BeautifulSoup(data.text, "html.parser")
+        if url_link not in existing_urls:
+                # 수정된 URL에 대해 크롤링 수행
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36"
+            }
+            data = requests.get(url_link, headers=headers)
+            soup = BeautifulSoup(data.text, "html.parser")
 
-        og_image = soup.select_one('meta[property="og:image"]')
-        og_title = soup.select_one('meta[property="og:title"]')
-        if not og_image:
-            return jsonify({"result": "fail", "msg": "유효하지 않은 Youtube channel 입니다."})
+            og_image = soup.select_one('meta[property="og:image"]')
+            og_title = soup.select_one('meta[property="og:title"]')
+            if not og_image:
+                return jsonify({"result": "fail", "msg": "유효하지 않은 Youtube channel 입니다."})
 
-        channels_info.append(
-            {
+            # URL이 변경된 경우에만 Selenium을 사용하여 썸네일 크롤링
+            driver = webdriver.Chrome()
+            driver.get(url_link)
+            SCROLL_PAUSE_TIME = 3
+            last_height = driver.execute_script("return document.documentElement.scrollHeight")
+            while True:
+                driver.execute_script("window.scrollTo(0, arguments[0]);", last_height)
+                time.sleep(SCROLL_PAUSE_TIME)
+                new_height = driver.execute_script("return document.documentElement.scrollHeight")
+                if new_height == last_height:
+                    break
+                last_height = new_height
+
+            thumbnails = []
+            images = driver.find_elements(By.CSS_SELECTOR, 'img.yt-core-image')
+            for image in images:
+                if image.get_attribute('src'):
+                    thumbnails.append(image.get_attribute('src'))
+                if len(thumbnails) >= 4: break
+            driver.quit()
+
+            channels_info.append({
+                "thumbnails": thumbnails,
                 "url_link": url_link,
                 "channel_image": og_image["content"],
                 "channel_title": og_title["content"],
                 "youtuber_comment": youtuber_comment,
-            }
-        )
+            })
+        else:
+            index = existing_urls.index(url_link)
+            channel_info = existing_card["channels_info"][index]
+            channel_info["youtuber_comment"] = youtuber_comment
+            channels_info.append(channel_info)
 
     card = {
         "channels_info": channels_info,
@@ -278,7 +314,6 @@ def correct_card():
         "card_content": card_content,
         "like_count": 0,
     }
-    print(card)
     # 3. mongoDB에 데이터를 넣기
     db.card.update_one({"user_nickname": user_nickname},
                        {"$set": card}, upsert=False)
