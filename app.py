@@ -1,4 +1,12 @@
-from flask import Flask, render_template, jsonify, request, redirect, url_for
+from flask import (
+    Flask,
+    make_response,
+    render_template,
+    jsonify,
+    request,
+    redirect,
+    url_for,
+)
 import requests
 from bs4 import BeautifulSoup
 from pymongo import MongoClient
@@ -19,6 +27,17 @@ def api_register():
     id_receive = data["userId"]
     nickname_receive = data["nickname"]
     pw_receive = data["password"]  # 여기서 pw받을 때 https로 받아야 안전함.
+
+    if search_nickname_in_db(nickname_receive) or search_userId_in_db(id_receive):
+        return (
+            jsonify(
+                {
+                    "result": "error",
+                    "message": "닉네임 또는 이메일이 이미 사용 중입니다.",
+                }
+            ),
+            400,
+        )
 
     pw_hash = hashlib.sha256(pw_receive.encode("utf-8")).hexdigest()
     db.user.insert_one(
@@ -45,20 +64,28 @@ def api_login():
         payload = {
             "id": id_receive,
             "exp": datetime.datetime.now(datetime.timezone.utc)
-            + datetime.timedelta(seconds=50),
+            + datetime.timedelta(seconds=500),
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
         return jsonify({"result": "success", "token": token})
     else:
         return jsonify(
-            {"result": "fail", "msg": "아이디/비밀번호가 일치하지 않습니다."}
+            {"result": "fail", "msg": "아이디/비밀번호가 올바르지 않습니다."}
         )
 
 
 @app.route("/login", methods=["GET"])
 def login():
     return render_template("login.html")
+
+
+@app.route("/logout")
+def logout():
+    # 로그아웃 처리를 위해 쿠키 삭제 등의 로직을 추가
+    resp = make_response(redirect(url_for("home")))
+    resp.delete_cookie("mytoken")
+    return resp
 
 
 @app.route("/")
@@ -115,17 +142,56 @@ def post_card():
 
     return jsonify({"result": "success"})
 
-@app.route('/delete_card/<user_nick>', methods=['POST'])
+
+@app.route("/delete_card/<user_nick>", methods=["POST"])
 def delete_card(user_nick):
     db.card.delete_one({"user_nick": user_nick})
-    return redirect(url_for('main'))
+    return redirect(url_for("main"))
 
- 
 
-@app.route('/like_card/<user_nick>', methods=['POST'])
+@app.route("/like_card/<user_nick>", methods=["POST"])
 def like_card(user_nick):
     db.card.update_one({"user_nick": user_nick}, {"$inc": {"count": 1}})
-    return redirect(url_for('main'))
+    return redirect(url_for("main"))
+
+
+def search_nickname_in_db(nickname):
+    print("check nickname db")
+    user = db.user.find_one({"nickname": nickname})
+    return user is not None
+
+
+def search_userId_in_db(userId):
+    print("check userId db")
+    user = db.user.find_one({"id": userId})
+    return user is not None
+
+
+@app.route("/check-nickname", methods=["POST"])
+def check_username():
+    data = request.get_json()
+    nickname = data.get("nickname")
+
+    user_exists = search_nickname_in_db(nickname)
+    if user_exists:
+        return jsonify({"exists": True, "message": "사용자 이름이 이미 사용 중입니다."})
+    else:
+        return jsonify({"exists": False, "message": "사용 가능한 닉네임입니다."})
+
+
+@app.route("/check-userId", methods=["POST"])
+def check_email():
+    data = request.get_json()
+    userId = data.get("userId")
+
+    user_exists = search_userId_in_db(userId)
+    if user_exists:
+        return jsonify(
+            {"exists": True, "message": "사용자 이메일이 이미 사용 중입니다."}
+        )
+    else:
+        return jsonify({"exists": False, "message": "사용 가능한 이메일입니다."})
+
 
 if __name__ == "__main__":
     app.run("0.0.0.0", port=5000, debug=True)
