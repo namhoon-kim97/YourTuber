@@ -1,26 +1,20 @@
 <!-- card_templates.html -->
-<div class="column is-one-third">
-    <div class="card">
-      <div class="card-content">
-        <!-- 카드 제목 -->
-        <p class="title">
-          {{user_nickname}}
-          <span>
-            <form
-              action="{{ url_for('like_card', user_nick=user_nick) }}"
-              method="post"
-            >
-              <button type="submit" class="emoji-button" value="like">❤️</button>
-            </form>
-          </span>
-        </p>
-        <hr class="has-background-grey-lighter" />
-        <!-- 카드 내용  -->
-        <div class="subtitle">
-          <!-- dv에 있는 내용들 list로 추가-->
-        </div>
-        {% for channel in channels_info %}
-        <!-- 카드 내용  -->
+
+<div class="column is-3">
+  <div class="card">
+    <div class="card-content" style="cursor: pointer;">
+      <!-- 카드 제목 -->
+      <p class="title">
+        {{card_nickname}}
+        <span>
+          <form action="{{ url_for('like_card', user_nick=card_nickname) }}" method="post">
+            <button type="submit" class="emoji-button" value="like">❤️</button>
+          </form>
+        </span>
+      </p>
+      <hr class="has-background-grey-lighter" />
+      <!-- 카드 내용  -->
+      {% for channel in channels_info %}
         <div class="subtitle">
           <article class="media">
             <figure class="media-left">
@@ -30,40 +24,30 @@
             </figure>
             <div class="media-content">
               <div class="content">
-                <p>
-                  <!-- channel딕셔너리에서 가져오기 -->
-                  <a href={{channel['url_link']}}><strong
-                    >{{channel['channel_title']}}</strong
-                  >
-                </p>
+                <p><a href={{channel['url_link']}}><strong >{{channel['channel_title']}}</strong></a></p>
               </div>
             </div>
           </article>
-          <footer class="modal-card-foot">
-            <div class="modal" id="card-correct">
-              <div class="modal-background"></div>
-              <div class="modal-card">
-                <section class="modal-card-body">수정폼넣기</section>
-                <footer class="modal-card-foot">
-                  <button class="button is-white">수정</button>
-                  <button id="cancelEditButton" class="button">취소</button>
-                </footer>
-              </div>
-            </div>
-  
-            <button class="button is-success">✏️</button>
-            <form
-              action="{{ url_for('delete_card', user_nick=user_nick) }}"
-              method="post"
-            >
-              <button type="submit" class="emoji-button" value="Delete">
-                ❌
-              </button>
-            </form>
-          </footer>
         </div>
-        {% endfor %}
-      </div>
+      {% endfor %}
+      <footer class="modal-card-foot">
+        <div class="modal" id="card-correct">
+          <div class="modal-background"></div>
+          <div class="modal-card">
+            <section class="modal-card-body">수정폼넣기</section>
+            <footer class="modal-card-foot">
+              <button class="button is-white">수정</button>
+              <button id="cancelEditButton" class="button">취소</button>
+            </footer>
+          </div>
+        </div>
+        <form action="{{ url_for('delete_card', user_nick=card_nickname) }}" method="post">
+          <button class="button is-success">✏️</button>
+        </form>
+        <form action="{{ url_for('delete_card', user_nick=card_nickname) }}" method="post">
+          <button type="submit" class="emoji-button" value="Delete">❌</button>
+        </form>
+      </footer>
     </div>
   </div>
-  
+</div>
