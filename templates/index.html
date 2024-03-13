@@ -1,44 +1,46 @@
-<<<<<<< HEAD
 {% extends "layout.html" %}
 {% block javascriptfuction %}
 <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-=======
-{% extends "layout.html" %} {% block javascriptfuction %}
->>>>>>> 285ba162727c681dee84d640846422d46f847b6c
 <script>
   $(document).ready(function() {
     document.querySelectorAll('.card-content').forEach((cardContent) => {
-        cardContent.addEventListener('click', function() {
-          insertCardmodalhtml(cardContent);
-          openModal('card-modal');
-        });
+      cardContent.addEventListener('click', function(event) {
+        if (!event.target.matches('button')) {
+            cardNickname = cardContent.querySelector('.title').childNodes[0].nodeValue.trim();
+            getCarddetail(cardNickname)
+        }
+    });
     });
 
     document.addEventListener('click', function(event) {
-        var modal = document.querySelector('.modal.is-active');
-        if (modal && modal.contains(event.target)) {
+      var modal = document.querySelector('.modal.is-active');
+      if (modal && modal.contains(event.target) && event.target.classList.contains('modal-background')) {
           $('.card-modal-container').empty();  
           modal.classList.remove('is-active');
-        }
-    });
+    }
+  });
   });
 
-  function insertCardmodalhtml(cardContent){
+  function getCarddetail(cardNickname){
+    $.ajax({
+      type: 'GET',
+      url: '/get',
+      data: {'card_nickname': cardNickname},
+      success: function(res){
+        if (res['result'] == 'success'){
+          insertCardmodalhtml(res['card_detail']);
+          openModal('card-modal');
+        } else {
+          alert(res['msg']);
+        }
+      } ,
+      error: function(xhr, status, error) {
+        alert("Error:");
+    }
+    })
+  }
 
-    cardNickname = cardContent.querySelector('.title').textContent;
-
-    var images = cardContent.querySelectorAll('.media-left img');
-    var urls = cardContent.querySelectorAll('.content a');
-    var titles = cardContent.querySelectorAll('.content strong');
-
-    var channelImageurls = [];
-    var channelUrls = [];
-    var channelTitles = [];
-
-    images.forEach(image => {channelImageurls.push(image.src); });
-    urls.forEach(url => {channelUrls.push(url.href); });
-    titles.forEach(title => {channelTitles.push(title.textContent); });
-
+  function insertCardmodalhtml(cardDetail) {
     cardHtml = `<div class="modal is-half" id="card-modal">
           <div class="modal-background"></div>
           <div class="modal-card">
@@ -47,81 +49,78 @@
                 ${cardNickname}
                 <span>
                   <form action="/like_card/${cardNickname}" method="post">
-                    <button type="submit" class="emoji-button" value="like">❤️</button>
+                    <button type="submit" class="emoji-button" value="like">❤️${cardDetail['like_count']}</button>
                   </form>
                 </span>
               </p>
             </header>
             <section class="modal-card-body">
             <p class="modal-cardcontent">
-              ${cardNickname}
+              ${cardDetail['card_content']}
             </p>
             <hr class="has-background-grey-lighter"/>
             <!--article 안에 왼쪽에 사진/ 우측에 그림 위치할 gird 작성-->
             `
-    for(let i =0; i<channelImageurls.length; i++){
-      cardHtml += `<div class="columns">
+
+    for (let i = 0; i < cardDetail['channels_info'].length; i++) {
+        cardHtml += `<div class="columns">
         <div class="column is-1-2">
           <!-- 왼쪽 컨텐츠 -->
           <div class="columns">
-            <div class="column is-half">
-              <!-- 왼쪽 상단 이미지 -->
-              <img src=${channelImageurls[i]} alt="Image 1" class="thumnail-image">
-            </div>
-            <div class="column is-half">
-              <!-- 오른쪽 상단 이미지 -->
-              <img src=${channelImageurls[i]} alt="Image 2" class="thumnail-image">
-            </div>
-          </div>
-          <div class="columns">
-            <div class="column is-half">
-              <!-- 왼쪽 하단 이미지 -->
-              <img src=${channelImageurls[i]} alt="Image 3" class="thumnail-image">
-            </div>
-            <div class="column is-half">
-              <!-- 오른쪽 하단 이미지 -->
-              <img src=${channelImageurls[i]} alt="Image 4" class="thumnail-image">
-            </div>
-          </div>
-        </div>
-        <div class="column">
-          <!-- 오른쪽 컨텐츠 -->
-          <article class="media">
-            <figure class="media-left">
-              <p class="image is-16x16">
-                <img src=${channelImageurls[i]} />
-              </p>
-            </figure>
-            <div class="media-content">
-              <div class="content">
-                <p><a href=${channelUrls[i]}><strong >${channelTitles[i]}</strong></a></p>
-              </div>
-            </div>
-            </article>
-            ${cardNickname}
-        </div>
-      </div>`
-  
-      if (i-1 !== channelImageurls.length){ 
-      cardHtml += `<hr class="has-background-grey-lighter"/>`
-      }
+            
+              <!-- 왼쪽 상단 이미지 -->`
+        
+        for (let j = 0; j < Math.min(4, cardDetail['channels_info'][i]['thumbnails'].length); j++) {
+          cardHtml += `<div class="column is-half">
+                            <img src=${cardDetail['channels_info'][i]['thumbnails'][j]} alt="Image ${j+1}" class="thumbnail-image">
+                        </div>`;
+          if (j == 1){
+            cardHtml += `</div>
+                        <div class="columns">`;
+          }
+        }
+        cardHtml += `</div>
+                    </div>`;
+
+        cardHtml += `<div class="column">
+                    <!-- 오른쪽 컨텐츠 -->
+                    <article class="media">
+                      <figure class="media-left">
+                        <p class="image is-32x32">
+                          <img src=${cardDetail['channels_info'][i]['channel_image']} />
+                        </p>
+                      </figure>
+                      <div class="media-content">
+                        <div class="content">
+                          <p><a href=${cardDetail['channels_info'][i]['url_link']}><strong >${cardDetail['channels_info'][i]['channel_title']}</strong></a></p>
+                        </div>
+                      </div>
+                    </article>
+                    ${cardDetail['channels_info'][i]['youtuber_comment']}
+                  </div>
+                </div>`
+
+        if (i !== cardDetail['channels_info'].length - 1) {
+            cardHtml += `<hr class="has-background-grey-lighter"/>`;
+        }
     }
-      cardHtml += `</div>            
+
+    cardHtml += `</div>            
                   </section>
                 </div>
               </div>`;
-      $('.card-modal-container').append(cardHtml);
+    $('.card-modal-container').append(cardHtml);
   }
 
 
+
   function openModal(modalId) {
-    var modal = document.getElementById(modalId);
-    modal.classList.add("is-active");
+      var modal = document.getElementById(modalId);
+      modal.classList.add('is-active');
   }
 
   function closeModal(modalId) {
     var modal = document.getElementById(modalId);
-<<<<<<< HEAD
     modal.classList.remove('is-active');
 
   }
@@ -162,7 +161,7 @@
     return youtubeChannelRegex.test(url);
   }
 
-  function validCheckandPOST(){
+  function validCheckandPOST(nickname){
     var fieldElement = document.getElementById('cardWritebox');
     var inputElements = fieldElement.querySelectorAll('input');
     var textareaElements = fieldElement.querySelectorAll('textarea');
@@ -196,12 +195,11 @@
       $.ajax({
         type:'POST',
         url:'/post',
-        data:{'user_nickname': {{nickname}}, 'card_content': cardContent, 
+        data:{'user_nickname': nickname, 'card_content': cardContent, 
               'youtube_links': channelUrls, 'youtuber_comments':youtuberComments},
         success: function(res){
           if (res['result'] == 'success'){
             window.location.href = '/';
-            alert(res['msg']);
           } else{
             alert(res['msg']);
           }
@@ -237,47 +235,11 @@
     </div>
   {% endif %}
 
-=======
-    modal.classList.remove("is-active");
-  }
-</script>
-<link
-  rel="stylesheet"
-  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-/>
-{% endblock %} {% block login %}
-<div class="columns is-mobile">
-  <div class="column is-offset-11">
-    {% if nickname %}
-    <button class="button is-success" onclick="location.href='/logout'">
-      {{ nickname }} (로그아웃)
-    </button>
-    {% else %}
-    <button class="button is-success" onclick="location.href='/login'">
-      로그인
-    </button>
-    {% endif %}
-  </div>
-</div>
-{% endblock%} {% block writecard %}
-<div class="columns is-mobile">
-  <div class="column is-offset-11">
-    <a class="button is-primary is-large" onclick="openModal('card-write')"
-      >글 작성</a
-    >
-  </div>
-</div>
->>>>>>> 285ba162727c681dee84d640846422d46f847b6c
 <div class="modal" id="card-write">
   <div class="modal-background"></div>
   <div class="modal-card">
     <header class="modal-card-head">
       <p class="modal-card-title">글 작성</p>
-      <button
-        class="delete"
-        aria-label="close"
-        onclick="closeModal('card-write')"
-      ></button>
     </header>
     <section class="modal-card-body">
 
@@ -286,7 +248,6 @@
         <div class="control">
           <textarea class="textarea" placeholder="게시글 작성" id="card-content"></textarea>
         </div>
-<<<<<<< HEAD
       </div>
       <div class="field" id="cardWritebox">
         <div class="channel-info">
@@ -307,17 +268,6 @@
         <button class="button is-success" onclick="addChannelinfo()">
           <span class="icon">
             <i class="fas fa-plus"></i>
-=======
-        <label class="label">Youtube channel URL</label>
-        <div class="control has-icons-left has-icons-right">
-          <input
-            class="input is-success"
-            type="text"
-            placeholder="https://www.youtube.com/~~~"
-          />
-          <span class="icon is-small is-left">
-            <i class="fa-brands fa-youtube"></i>
->>>>>>> 285ba162727c681dee84d640846422d46f847b6c
           </span>
         </button>
         <button class="button is-danger" onclick="deleteChannelinfo()">
@@ -329,11 +279,10 @@
       <!-- Content ... -->
     </section>
     <footer class="modal-card-foot">
-      <button class="button is-success" onclick="validCheckandPOST()">작성 완료</button>
+      <button class="button is-success" onclick="validCheckandPOST('{{nickname}}')">작성 완료</button>
     </footer>
   </div>
 </div>
-<<<<<<< HEAD
 {% endblock%}
 {% block body %}
   <div class='card-modal-container'></div>
@@ -349,13 +298,5 @@
       </div>
     {% endif %}
   {% endfor %}
-=======
-{% endblock%} {% block body %}
-<div class="columns is-multiline">
-  <!-- 쌓이게 -->
-  {% for card in cards %} {% with user_nickname=card['user_nickname'],
-  like_count=card['like_count'], channels_info= card['channels_info'] %} {%
-  include 'card_templates.html' %} {% endwith %} {% endfor %}
-</div>
->>>>>>> 285ba162727c681dee84d640846422d46f847b6c
 {% endblock %}
+

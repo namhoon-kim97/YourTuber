@@ -1,6 +1,6 @@
-<<<<<<< HEAD
-from flask import Flask, render_template, jsonify, request, redirect, url_for, make_response
-=======
+import jwt, datetime, hashlib
+import requests
+
 from flask import (
     Flask,
     make_response,
@@ -10,11 +10,12 @@ from flask import (
     redirect,
     url_for,
 )
->>>>>>> 285ba162727c681dee84d640846422d46f847b6c
-import requests
+
 from bs4 import BeautifulSoup
 from pymongo import MongoClient
-import jwt, datetime, hashlib, json
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
 
 app = Flask(__name__)
 SECRET_KEY = "namhoon"
@@ -24,6 +25,9 @@ client = MongoClient(
 )
 db = client.yourtuber
 
+## scraping driver
+chrome_options = Options()
+chrome_options.add_experimental_option("detach", True)
 
 @app.route("/api/register", methods=["POST"])
 def api_register():
@@ -68,11 +72,7 @@ def api_login():
         payload = {
             "id": id_receive,
             "exp": datetime.datetime.now(datetime.timezone.utc)
-<<<<<<< HEAD
-            + datetime.timedelta(seconds=5000),
-=======
-            + datetime.timedelta(seconds=500),
->>>>>>> 285ba162727c681dee84d640846422d46f847b6c
+            + datetime.timedelta(seconds=500)
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
@@ -89,43 +89,41 @@ def login():
 
 @app.route("/logout", methods=["GET"])
 def logout():
-    token_receive = request.cookies.get("mytoken")
-
     # 쿠키 삭제를 위해 빈 문자열과 만료일을 설정하여 쿠키를 덮어씁니다.
     response = make_response(render_template("index.html"))
     response.set_cookie("mytoken", "", expires=0)
     return render_template("login.html")
 
-@app.route("/logout")
-def logout():
-    # 로그아웃 처리를 위해 쿠키 삭제 등의 로직을 추가
-    resp = make_response(redirect(url_for("home")))
-    resp.delete_cookie("mytoken")
-    return resp
-
-
 @app.route("/")
 def home():
     token_receive = request.cookies.get("mytoken")
     # channels_info : list(dict)
-    # cards : list(dict(channels_info, str, str, int))
+    # cards : list(dict(list(dict), str, str, int))
     unsorted_cards = list(db.card.find({}, {'_id':False}))
     cards = sorted(unsorted_cards, reverse=True, key=lambda x: x['like_count'])
 
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
         user_info = db.user.find_one({"id": payload["id"]})
-        nickname=user_info["nickname"]
-    except :
-        nickname=None
-        
-    return render_template("index.html", nickname=nickname, cards=cards)
+        return render_template("index.html", nickname=user_info["nickname"], cards=cards)
+    except jwt.ExpiredSignatureError:
+        return redirect(url_for("login", msg="로그인 시간이 만료되었습니다."))
+    except jwt.exceptions.DecodeError:
+        return redirect(url_for("login", msg="로그인 정보가 존재하지 않습니다."))
 
+@app.route("/get", methods=["GET"])
+def get_card_detail():
+    card_nickname= request.args.get('card_nickname')
+    card_detail = db.card.find_one({"user_nickname" : card_nickname}, {'_id':False})
+    return jsonify({"result": "success", "msg": "카드정보 및 썸네일 전송 완료!", "card_detail": card_detail})
 
 @app.route("/post", methods=["POST"])
 def post_card():
     # 1. user로 부터 데이터를 받기
     user_nickname = request.form["user_nickname"]
+    if db.card.find_one({'user_nickname' : card['user_nickname']}):
+        return jsonify({"result": "fail", "msg": "이미 저장된 카드가 있습니다!"})
+     
     card_content = request.form["card_content"]
     youtube_links = request.form.getlist("youtube_links[]")
     youtuber_comments = request.form.getlist("youtuber_comments[]")
@@ -143,8 +141,20 @@ def post_card():
         og_title = soup.select_one('meta[property="og:title"]')
         if not og_image: return jsonify({"result": "fail", "msg": "유효하지 않은 Youtube channel 입니다."})
         
+        driver = webdriver.Chrome(options=chrome_options)
+        driver.implicitly_wait(3)
+        
+        driver.get(url_link)
+        thumbnail_elements= driver.find_elements(By.CSS_SELECTOR, 'img.yt-core-image')
+        thumbnails = []
+        for thumbnail in thumbnail_elements:
+            if thumbnail.get_attribute('src'):
+                thumbnails.append(thumbnail.get_attribute('src'))
+            if len(thumbnails) >= 4: break
+        
         channels_info.append(
-            {
+            {   
+                "thumbnails": thumbnails,
                 "url_link": url_link,
                 "channel_image": og_image["content"],
                 "channel_title": og_title["content"],
@@ -162,24 +172,15 @@ def post_card():
     db.card.insert_one(card)
     return jsonify({"result": "success", "msg": "카드 작성 완료!"})
 
-
-@app.route("/delete_card/<user_nick>", methods=["POST"])
+@app.route('/delete_card/<user_nick>', methods=['POST'])
 def delete_card(user_nick):
     db.card.delete_one({"user_nick": user_nick})
-<<<<<<< HEAD
     return redirect(url_for('home'))
-=======
-    return redirect(url_for("main"))
 
->>>>>>> 285ba162727c681dee84d640846422d46f847b6c
-
-@app.route("/like_card/<user_nick>", methods=["POST"])
+@app.route('/like_card/<user_nick>', methods=['POST'])
 def like_card(user_nick):
     db.card.update_one({"user_nick": user_nick}, {"$inc": {"count": 1}})
-<<<<<<< HEAD
     return redirect(url_for('home'))
-=======
-    return redirect(url_for("main"))
 
 
 def search_nickname_in_db(nickname):
@@ -219,7 +220,6 @@ def check_email():
     else:
         return jsonify({"exists": False, "message": "사용 가능한 이메일입니다."})
 
->>>>>>> 285ba162727c681dee84d640846422d46f847b6c
 
 if __name__ == "__main__":
     app.run("0.0.0.0", port=5000, debug=True)

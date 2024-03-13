@@ -20,6 +20,6 @@
   height: auto; /* 이미지 높이는 비율에 맞게 자동 조정 */
 }
 
-.modal-content {
-  width: 450px; 
+.column.is-half {
+  padding: 0; /* 패딩을 0으로 설정하여 없앱니다. */
 }
