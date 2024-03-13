@@ -260,30 +260,66 @@
     });
   }
 
-  function correctCard(nickname) {
-    let title = $("#correctedTitle").val();
-    let comment = $("#correctedComment").val();
-    let channel = $("#correctedChannel").val();
-    let count = $("like_count").val();
+function correctCard(user_nickname) {
+  var fieldElement = document.getElementById("cardCorrectbox");
+    var inputElements = fieldElement.querySelectorAll("input");
+    var textareaElements = fieldElement.querySelectorAll("textarea");
+    console.log(inputElements,textareaElements);
 
-    $.ajax({
-      type: "POST",
-      url: "/card/correct",
-      data: { nickname: nickname, title: title },
-      success: function (response) {
-        if (response.result === "success") {
-          alert(response.msg);
-          location.reload();
-        } else {
-          alert("서버 오류!");
-        }
-      },
-      error: function (xhr, status, error) {
-        alert("서버 오류!");
-        console.error(error);
-      },
+    var cardContent = $("#correct-content").val();
+    var channelUrls = [];
+    inputElements.forEach((inputElement) => {
+      var isValid = isValidChannelUrl(inputElement.value);
+      var nextElement = inputElement.nextElementSibling;
+      if (isValid) channelUrls.push(inputElement.value);
+      var message = isValid ? "이 URL은 가능합니다." : "이 URL은 불가능합니다.";
+      var className = isValid ? "is-success" : "is-danger";
+
+      if (nextElement && nextElement.tagName.toLowerCase() === "p") {
+        nextElement.className = `help ${className}`;
+        nextElement.textContent = message;
+      } else {
+        var paragraphElement = document.createElement("p");
+        paragraphElement.classList.add("help", className);
+        paragraphElement.textContent = message;
+        inputElement.insertAdjacentElement("afterend", paragraphElement);
+      }
     });
-  }
+
+    var youtuberComments = [];
+    textareaElements.forEach((inputElement) => {
+      youtuberComments.push(inputElement.value);
+    });
+
+    if (channelUrls.length == youtuberComments.length) {
+      closeModal("card-correct");
+      $.ajax( {
+
+        type: "POST",
+        url: "/card/correct",
+        data: {
+          user_nickname: user_nickname,
+          card_content: cardContent,
+          youtube_links: channelUrls,
+          youtuber_comments: youtuberComments,
+        },
+        success: function (res) {
+          if (res["result"] == "success") {
+            window.location.href = "/";
+            alert(res["msg"]);
+          } else {
+            alert(res["msg"]);
+          }
+        },
+        error: function (xhr, status, error) {
+          alert("Error:");
+        },
+      });
+    } else {
+      alert("올바른 Youtube channel URL을 입력해 주세요.");
+    }
+
+}
 
   function likeCard(nickname, card_nickname) {
     $.ajax({
@@ -393,7 +429,6 @@
           <span class="icon">
             <i class="fas fa-plus"></i>
           </span>
-        </button>
         <button class="button is-danger" onclick="deleteChannelinfo()">
           <span class="icon">
             <i class="fas fa-times"></i>
