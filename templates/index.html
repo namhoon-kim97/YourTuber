@@ -216,6 +216,98 @@
       alert("올바른 Youtube channel URL을 입력해 주세요.");
     }
   }
+
+
+function opencorrectModal(modalId, nickname) {
+  var modal = document.getElementById(modalId);
+  modal.classList.add("is-active");
+  $.ajax({
+    type: "POST",
+    url: "/card/load",
+    data: { nickname: nickname },
+    success: function (response) {
+      if (response["result"] == "success") {
+        let card = response.corrCard;
+        // 카드 정보를 가져와서 수정 폼에 채우기
+        // for돌려서 card.title.length만큼
+        //
+        $("#card-title").val(card.title);
+        $("#youtube-url").val(card.youtube_url);
+        $("#channel-description").val(card.description);
+        // 수정 모달 열기
+        var modal = document.getElementById(modalId);
+        modal.classList.add("is-active");
+      } else {
+        alert("서버 오류!");
+      }
+    },
+  });
+}
+
+function correctCard(nickname) {
+  let title = $("#correctedTitle").val();
+  let comment = $("#correctedComment").val();
+  let channel = $("#correctedChannel").val();
+  let count = $("like_count").val();
+
+  $.ajax({
+    type: "POST",
+    url: "/card/correct",
+    data: { nickname: nickname, title: title },
+    success: function (response) {
+      if (response.result === "success") {
+        alert(response.msg);
+        location.reload();
+      } else {
+        alert("서버 오류!");
+      }
+    },
+    error: function (xhr, status, error) {
+      alert("서버 오류!");
+      console.error(error);
+    },
+  });
+}
+
+function likeCard(nickname, userNickname) {
+  $.ajax({
+    type: "POST",
+    url: "/card/like",
+    data: { nickname: nickname, user_nickname: userNickname },
+    success: function (response) {
+      if (response.result === "success") {
+        alert(response.msg);
+        location.reload();
+      } else {
+        alert("서버 오류!");
+      }
+    },
+    error: function (xhr, status, error) {
+      alert("서버 오류!");
+      console.error(error);
+    },
+  });
+}
+
+function unlikeCard(nickname, userNickname) {
+  $.ajax({
+    type: "POST",
+    url: "/card/unlike",
+    data: { nickname: nickname, user_nickname: userNickname },
+    success: function (response) {
+      if (response.result === "success") {
+        alert(response.msg);
+        location.reload();
+      } else {
+        alert("서버 오류!");
+      }
+    },
+    error: function (xhr, status, error) {
+      alert("서버 오류!");
+      console.error(error);
+    },
+  });
+}
 </script>
 
 <link
@@ -289,6 +381,15 @@
         <button class="button is-success" onclick="addChannelinfo()">
           <span class="icon">
             <i class="fas fa-plus"></i>
+        <label class="label">Youtube channel URL</label>
+        <div class="control has-icons-left has-icons-right">
+          <input
+            class="input is-success"
+            type="text"
+            placeholder="https://www.youtube.com/~~~"
+          />
+          <span class="icon is-small is-left">
+            <i class="fa-brands fa-youtube"></i>
           </span>
         </button>
         <button class="button is-danger" onclick="deleteChannelinfo()">
@@ -306,13 +407,19 @@
     </footer>
   </div>
 </div>
-{% endblock%} {% block body %}
-<div class="card-modal-container"></div>
-<!-- 3개씩 쌓이게 -->
-{% for card in cards %} {% if loop.index % 4 == 1 %}
-<div class="columns is-multiline">
-  {% endif %} {% with card_nickname=card['user_nickname'],
-  like_count=card['like_count'], channels_info= card['channels_info'] %} {%
-  include 'card_templates.html' %} {% endwith %} {% if loop.index % 4 == 0 %}
-</div>
-{% endif %} {% endfor %} {% endblock %}
+{% endblock%}
+{% block body %}
+  <div class='card-modal-container'></div>
+  <!-- 3개씩 쌓이게 -->
+  {% for card in cards %}
+    {% if loop.index %4 == 1 %}
+      <div class="columns is-multiline">
+    {% endif %}
+      {% with mylike = mylike, nickname = nickname,card_nickname=card['user_nickname'], like_count=card['like_count'], channels_info= card['channels_info'] %}
+        {% include 'card_templates.html' %}
+      {% endwith %}
+    {% if loop.index % 4 == 0 %}
+      </div>
+    {% endif %}
+  {% endfor %}
+{% endblock%}

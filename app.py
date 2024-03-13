@@ -10,7 +10,10 @@ from flask import (
 import requests
 from bs4 import BeautifulSoup
 from pymongo import MongoClient
-import jwt, datetime, hashlib, json
+import jwt
+import datetime
+import hashlib
+import json
 
 app = Flask(__name__)
 SECRET_KEY = "namhoon"
@@ -41,7 +44,7 @@ def api_register():
 
     pw_hash = hashlib.sha256(pw_receive.encode("utf-8")).hexdigest()
     db.user.insert_one(
-        {"id": id_receive, "pw": pw_hash, "nickname": nickname_receive, "liked": {}}
+        {"id": id_receive, "pw": pw_hash, "nickname": nickname_receive, "liked": []}
     )
     return jsonify({"result": "success"})
 
@@ -98,12 +101,20 @@ def home():
 
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
+        # cards = db.card.find({})
+        unsorted_cards = list(db.card.find({}, {'_id': False}))
+        cards = sorted(unsorted_cards, reverse=True,
+                       key=lambda x: x['like_count'])
+
         user_info = db.user.find_one({"id": payload["id"]})
-        nickname = user_info["nickname"]
+        my_like = user_info.get("liked", [])
+        nickname = user_info['nickname']
     except:
         nickname = None
+        my_like = []
+        user_info = None
 
-    return render_template("index.html", nickname=nickname, cards=cards)
+    return render_template("index.html", cards=cards, my_like=my_like, user_info=user_info, nickname=nickname)
 
 
 @app.route("/post", methods=["POST"])
@@ -126,9 +137,7 @@ def post_card():
         og_image = soup.select_one('meta[property="og:image"]')
         og_title = soup.select_one('meta[property="og:title"]')
         if not og_image:
-            return jsonify(
-                {"result": "fail", "msg": "유효하지 않은 Youtube channel 입니다."}
-            )
+            return jsonify({"result": "fail", "msg": "유효하지 않은 Youtube channel 입니다."})
 
         channels_info.append(
             {
@@ -149,17 +158,56 @@ def post_card():
     db.card.insert_one(card)
     return jsonify({"result": "success", "msg": "카드 작성 완료!"})
 
-
-@app.route("/delete_card/<user_nick>", methods=["POST"])
-def delete_card(user_nick):
-    db.card.delete_one({"user_nick": user_nick})
-    return redirect(url_for("home"))
+# user_nick 변수 맞게 바꿔야
 
 
-@app.route("/like_card/<user_nick>", methods=["POST"])
-def like_card(user_nick):
-    db.card.update_one({"user_nick": user_nick}, {"$inc": {"count": 1}})
-    return redirect(url_for("main"))
+@app.route('/card/load', methods=['POST'])
+def load_cards():
+    nickname = request.form['nickname']
+    corrCard = db.card.find_one({"nickname": nickname})
+    return jsonify({'result': 'success', 'corrCard': corrCard})
+
+
+@app.route('/card/update', methods=['POST'])
+def update_cards(nickname):
+    title_receive = request.form['title_give']
+    content_receive = request.form['content_give']
+    db.card.update_one({"nickname": nickname}, {
+        '$set': {"title": title_receive, "content": content_receive}})
+    return jsonify({'result': 'success', 'msg': '수정 완료'})
+
+
+@app.route('/delete_card/<nickname>', methods=['POST'])
+def delete_card(nickname):
+    db.card.delete_one({"nickname": nickname})
+    return redirect(url_for('home'))
+
+
+@app.route('/card/like', methods=['POST'])
+def like_cards():
+    nickname = request.form['nickname']
+    user_nickname = request.form['user_nickname']
+    print(nickname, user_nickname)
+    db.user.update_one(
+        {"nickname": nickname},
+        {"$push": {"liked": user_nickname}},
+        upsert=True)
+    # 카드의 count +=1
+    db.card.update_one({"nickname": nickname},
+                       {"$inc": {"like_count": +1}})
+    return jsonify({'result': 'success', 'msg': '좋아요'})
+
+
+@app.route('/card/unlike', methods=['POST'])
+def unlike_cards():
+    nickname = request.form['nickname']
+    user_nickname = request.form['user_nickname']
+    db.card.update_one({"nickname": user_nickname},
+                       {"$inc": {"like_count": -1}})
+    db.user.update_one(
+        {"nickname": nickname},
+        {"$pull": {"liked": user_nickname}})
+    return jsonify({'result': 'success', 'msg': '이거별로네'})
 
 
 def search_nickname_in_db(nickname):
