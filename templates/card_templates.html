@@ -1,69 +1,149 @@
 <!-- card_templates.html -->
 <div class="column is-one-third">
-    <div class="card">
-      <div class="card-content">
-        <!-- 카드 제목 -->
-        <p class="title">
-          {{user_nickname}}
-          <span>
-            <form
-              action="{{ url_for('like_card', user_nick=user_nick) }}"
-              method="post"
-            >
-              <button type="submit" class="emoji-button" value="like">❤️</button>
-            </form>
-          </span>
-        </p>
-        <hr class="has-background-grey-lighter" />
-        <!-- 카드 내용  -->
-        <div class="subtitle">
-          <!-- dv에 있는 내용들 list로 추가-->
-        </div>
-        {% for channel in channels_info %}
-        <!-- 카드 내용  -->
-        <div class="subtitle">
-          <article class="media">
-            <figure class="media-left">
-              <p class="image is-64x64">
-                <img src="{{channel['channel_image']}}" />
-              </p>
-            </figure>
-            <div class="media-content">
-              <div class="content">
-                <p>
-                  <!-- channel딕셔너리에서 가져오기 -->
-                  <a href={{channel['url_link']}}><strong
-                    >{{channel['channel_title']}}</strong
-                  >
-                </p>
-              </div>
-            </div>
-          </article>
-          <footer class="modal-card-foot">
-            <div class="modal" id="card-correct">
-              <div class="modal-background"></div>
-              <div class="modal-card">
-                <section class="modal-card-body">수정폼넣기</section>
-                <footer class="modal-card-foot">
-                  <button class="button is-white">수정</button>
-                  <button id="cancelEditButton" class="button">취소</button>
-                </footer>
-              </div>
-            </div>
-  
-            <button class="button is-success">✏️</button>
-            <form
-              action="{{ url_for('delete_card', user_nick=user_nick) }}"
-              method="post"
-            >
-              <button type="submit" class="emoji-button" value="Delete">
-                ❌
-              </button>
-            </form>
-          </footer>
-        </div>
-        {% endfor %}
+  <div class="card">
+    <div class="card-content" style="padding-bottom: 10px">
+      <!-- 카드 제목 -->
+      <!-- like unlike 모아둠  -->
+
+      {%if user_nickname in my_like%}
+      <button
+        type="submit"
+        class="emoji-button"
+        onclick="unlikeCard('{{ nickname }}', '{{ user_nickname }}')"
+      >
+        🩷<span style="font-size: 20px"> {{like_count}} </span>
+      </button>
+      {%else%}
+      <button
+        type="submit"
+        class="emoji-button"
+        onclick="likeCard('{{ nickname }}', '{{ user_nickname }}')"
+      >
+        🤍<span style="font-size: 20px"> {{like_count}} </span>
+      </button>
+
+      {% endif %}
+      <!-- like unlike 여기까지 -->
+
+      <p class="title">
+        <span style="font-size: 0.8em">{{user_nickname}} </span>
+      </p>
+      <hr class="has-background-grey-lighter" />
+      <!-- 카드 내용  -->
+      <div class="subtitle">
+        <!-- db에 있는 내용들 list로 추가-->
       </div>
+      {% for channel in channels_info %}
+      <!-- 카드 내용  -->
+      <div class="subtitle">
+        <article class="media">
+          <figure class="media-left">
+            <p class="image is-64x64">
+              <img src="{{channel['channel_image']}}" />
+            </p>
+          </figure>
+          <div class="media-content">
+            <div class="content">
+              <p>
+                <!-- channel딕셔너리에서 가져오기 -->
+                <a href="{{ channel['url_link'] }}">
+                  <strong>{{ channel['channel_title'] }}</strong>
+                </a>
+              </p>
+            </div>
+          </div>
+        </article>
+      </div>
+      {% endfor %}
+      <div></div>
+      <footer
+        class="card-footer"
+        style="min-height: 50px; display: flex; align-items: center"
+      >
+        {% if user_nickname == nickname %}
+
+        <!-- 수정버튼 -->
+        <div class="modal" id="card-correct">
+          <div class="modal-background"></div>
+          <div class="modal-card">
+            <header class="modal-card-head">
+              <p class="modal-card-title">글 수정</p>
+              <button
+                class="delete"
+                aria-label="close"
+                onclick="closeModal('card-correct')"
+              ></button>
+            </header>
+            <section class="modal-card-body">
+              <div class="field">
+                <label class="label">카드글 수정</label>
+                <div class="control">
+                  <textarea
+                    class="textarea"
+                    id="card-title"
+                    placeholder="게시글 수정"
+                  ></textarea>
+                </div>
+                <label class="label">Youtube channel URL</label>
+                <div class="control has-icons-left has-icons-right">
+                  <input
+                    class="input is-success"
+                    type="text"
+                    id="youtube-url"
+                    placeholder="https://www.youtube.com/~~~"
+                  />
+                  <span class="icon is-small is-left">
+                    <i class="fa-brands fa-youtube"></i>
+                  </span>
+                </div>
+                <p class="help is-success">This username is available</p>
+                <p class="help is-danger">This username is not available</p>
+                <label class="label">youtuber 소개글</label>
+                <div class="control">
+                  <textarea
+                    class="textarea"
+                    placeholder="소개글 작성"
+                    id="channel-description"
+                  ></textarea>
+                </div>
+              </div>
+            </section>
+            <footer class="modal-card-foot">
+              <button
+                class="button is-success"
+                onclick="correctCard('${nickname}')"
+              >
+                수정 완료
+              </button>
+              <button
+                id="cancelEditButton"
+                class="button"
+                onclick="closeModal('card-correct')"
+              >
+                취소
+              </button>
+            </footer>
+          </div>
+        </div>
+        <button
+          class="emoji-button"
+          onclick="opencorrectModal('card-correct','${nickname}')"
+        >
+          ✏️
+        </button>
+
+        <!-- 삭제버튼 -->
+        <form
+          action="{{ url_for('delete_card', nickname=nickname) }}"
+          method="post"
+        >
+          <button type="submit" class="emoji-button" value="Delete">❌</button>
+        </form>
+        {%else%}
+        <!-- 공백문자로 footer size  -->
+        <span> </span>
+        {%endif%}
+      </footer>
     </div>
   </div>
-  
+</div>
