@@ -1,11 +1,11 @@
 from flask import (
     Flask,
-    make_response,
     render_template,
     jsonify,
     request,
     redirect,
     url_for,
+    make_response,
 )
 import requests
 from bs4 import BeautifulSoup
@@ -67,7 +67,7 @@ def api_login():
         payload = {
             "id": id_receive,
             "exp": datetime.datetime.now(datetime.timezone.utc)
-            + datetime.timedelta(seconds=500),
+            + datetime.timedelta(seconds=5000),
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
@@ -96,8 +96,8 @@ def home():
     token_receive = request.cookies.get("mytoken")
     # channels_info : list(dict)
     # cards : list(dict(channels_info, str, str, int))
-    unsorted_cards = list(db.card.find({}, {'_id': False}))
-    cards = sorted(unsorted_cards, reverse=True, key=lambda x: x['like_count'])
+    unsorted_cards = list(db.card.find({}, {"_id": False}))
+    cards = sorted(unsorted_cards, reverse=True, key=lambda x: x["like_count"])
 
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
