@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-{% extends "layout.html" %}
-{% block javascriptfuction %}
-<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-=======
 {% extends "layout.html" %} {% block javascriptfuction %}
->>>>>>> 285ba162727c681dee84d640846422d46f847b6c
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
 <script>
   $(document).ready(function() {
     document.querySelectorAll('.card-content').forEach((cardContent) => {
@@ -17,7 +12,7 @@
     document.addEventListener('click', function(event) {
         var modal = document.querySelector('.modal.is-active');
         if (modal && modal.contains(event.target)) {
-          $('.card-modal-container').empty();  
+          $('.card-modal-container').empty();
           modal.classList.remove('is-active');
         }
     });
@@ -101,12 +96,12 @@
             ${cardNickname}
         </div>
       </div>`
-  
-      if (i-1 !== channelImageurls.length){ 
+
+      if (i-1 !== channelImageurls.length){
       cardHtml += `<hr class="has-background-grey-lighter"/>`
       }
     }
-      cardHtml += `</div>            
+      cardHtml += `</div>
                   </section>
                 </div>
               </div>`;
@@ -121,7 +116,6 @@
 
   function closeModal(modalId) {
     var modal = document.getElementById(modalId);
-<<<<<<< HEAD
     modal.classList.remove('is-active');
 
   }
@@ -196,7 +190,7 @@
       $.ajax({
         type:'POST',
         url:'/post',
-        data:{'user_nickname': {{nickname}}, 'card_content': cardContent, 
+        data:{'user_nickname': {{nickname}}, 'card_content': cardContent,
               'youtube_links': channelUrls, 'youtuber_comments':youtuberComments},
         success: function(res){
           if (res['result'] == 'success'){
@@ -216,58 +210,29 @@
   }
 </script>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-{% endblock %}
-{% block login %}
-<div class="columns is-mobile">
-  {% if not nickname %}
-    <div class="column is-offset-11">
-      <button class="button is-success" onclick="location.href='/login'">로그인</button>
-      <!-- 로그인 상태면 userNickname보이게 -->
-    </div>
-  {% endif %}
-</div>
-{% endblock %}
-{% block writecard %}
-  {% if nickname %}
-    <div class="columns is-mobile">
-      <div class="column is-offset-11">
-        <a class="button is-primary" onclick="openModal('card-write')">글 작성</a>
-      </div>
-    </div>
-  {% endif %}
-
-=======
-    modal.classList.remove("is-active");
-  }
-</script>
 <link
   rel="stylesheet"
   href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
 />
 {% endblock %} {% block login %}
 <div class="columns is-mobile">
+  {% if not nickname %}
   <div class="column is-offset-11">
-    {% if nickname %}
-    <button class="button is-success" onclick="location.href='/logout'">
-      {{ nickname }} (로그아웃)
-    </button>
-    {% else %}
     <button class="button is-success" onclick="location.href='/login'">
       로그인
     </button>
-    {% endif %}
+    <!-- 로그인 상태면 userNickname보이게 -->
   </div>
+  {% endif %}
 </div>
-{% endblock%} {% block writecard %}
+{% endblock %} {% block writecard %} {% if nickname %}
 <div class="columns is-mobile">
   <div class="column is-offset-11">
-    <a class="button is-primary is-large" onclick="openModal('card-write')"
-      >글 작성</a
-    >
+    <a class="button is-primary" onclick="openModal('card-write')">글 작성</a>
   </div>
 </div>
->>>>>>> 285ba162727c681dee84d640846422d46f847b6c
+{% endif %}
+
 <div class="modal" id="card-write">
   <div class="modal-background"></div>
   <div class="modal-card">
@@ -280,19 +245,25 @@
       ></button>
     </header>
     <section class="modal-card-body">
-
       <div class="field">
         <label class="label">카드글 작성</label>
         <div class="control">
-          <textarea class="textarea" placeholder="게시글 작성" id="card-content"></textarea>
+          <textarea
+            class="textarea"
+            placeholder="게시글 작성"
+            id="card-content"
+          ></textarea>
         </div>
-<<<<<<< HEAD
       </div>
       <div class="field" id="cardWritebox">
         <div class="channel-info">
           <label class="label">Youtube channel URL</label>
           <div class="control has-icons-left has-icons-right">
-            <input class="input is-success" type="text" placeholder="https://www.youtube.com/~~~">
+            <input
+              class="input is-success"
+              type="text"
+              placeholder="https://www.youtube.com/~~~"
+            />
             <span class="icon is-small is-left">
               <i class="fa-brands fa-youtube"></i>
             </span>
@@ -307,17 +278,6 @@
         <button class="button is-success" onclick="addChannelinfo()">
           <span class="icon">
             <i class="fas fa-plus"></i>
-=======
-        <label class="label">Youtube channel URL</label>
-        <div class="control has-icons-left has-icons-right">
-          <input
-            class="input is-success"
-            type="text"
-            placeholder="https://www.youtube.com/~~~"
-          />
-          <span class="icon is-small is-left">
-            <i class="fa-brands fa-youtube"></i>
->>>>>>> 285ba162727c681dee84d640846422d46f847b6c
           </span>
         </button>
         <button class="button is-danger" onclick="deleteChannelinfo()">
@@ -329,33 +289,19 @@
       <!-- Content ... -->
     </section>
     <footer class="modal-card-foot">
-      <button class="button is-success" onclick="validCheckandPOST()">작성 완료</button>
+      <button class="button is-success" onclick="validCheckandPOST()">
+        작성 완료
+      </button>
     </footer>
   </div>
 </div>
-<<<<<<< HEAD
-{% endblock%}
-{% block body %}
-  <div class='card-modal-container'></div>
-  <!-- 3개씩 쌓이게 -->
-  {% for card in cards %}
-    {% if loop.index % 4 == 1 %}
-      <div class="columns is-multiline">
-    {% endif %}
-      {% with card_nickname=card['user_nickname'], like_count=card['like_count'], channels_info= card['channels_info'] %}
-        {% include 'card_templates.html' %}
-      {% endwith %}
-    {% if loop.index % 4 == 0 %}
-      </div>
-    {% endif %}
-  {% endfor %}
-=======
 {% endblock%} {% block body %}
+<div class="card-modal-container"></div>
+<!-- 3개씩 쌓이게 -->
+{% for card in cards %} {% if loop.index % 4 == 1 %}
 <div class="columns is-multiline">
-  <!-- 쌓이게 -->
-  {% for card in cards %} {% with user_nickname=card['user_nickname'],
+  {% endif %} {% with card_nickname=card['user_nickname'],
   like_count=card['like_count'], channels_info= card['channels_info'] %} {%
-  include 'card_templates.html' %} {% endwith %} {% endfor %}
+  include 'card_templates.html' %} {% endwith %} {% if loop.index % 4 == 0 %}
 </div>
->>>>>>> 285ba162727c681dee84d640846422d46f847b6c
-{% endblock %}
+{% endif %} {% endfor %} {% endblock %}
