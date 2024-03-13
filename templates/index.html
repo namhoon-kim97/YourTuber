@@ -30,10 +30,10 @@
       card_nickname: cardNickname,
     };
     $.ajax({
-      type: "POST",
+      type: "GET",
       url: "/get",
-      data: JSON.stringify(formData),
-      contentType: "application/json",
+      data: formData, // JSON.stringify를 제거하고 객체를 직접 전달
+      // contentType 설정을 제거함. GET 요청에는 필요 없음
       dataType: "json",
       success: function (res) {
         if (res["result"] == "success") {
@@ -44,10 +44,11 @@
         }
       },
       error: function (xhr, status, error) {
-        alert("Error:");
+        alert("Error: " + error);
       },
     });
   }
+
 
   function insertCardmodalhtml(cardDetail, userNickname) {
     cardHtml = `<div class="modal is-half" id="card-modal">

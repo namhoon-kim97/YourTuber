@@ -154,13 +154,15 @@ def home():
 
 
 
-@app.route("/get", methods=["POST"])
+@app.route("/get", methods=["GET"])
 def get_card_detail():
-    data = request.get_json()
-    card_nickname = data["card_nickname"]
+    card_nickname = request.args.get("card_nickname")
     
-    card_detail = db.card.find_one({"user_nickname" : card_nickname}, {'_id':False})
-    return jsonify({"result": "success", "msg": "카드정보 및 썸네일 전송 완료!", "card_detail": card_detail})
+    card_detail = db.card.find_one({"user_nickname": card_nickname}, {'_id': False})
+    if card_detail:
+        return jsonify({"result": "success", "msg": "카드정보 및 썸네일 전송 완료!", "card_detail": card_detail})
+    else:
+        return jsonify({"result": "fail", "msg": "카드정보를 찾을 수 없습니다."})
 
 
 @app.route("/post", methods=["POST"])
