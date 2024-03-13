@@ -168,18 +168,52 @@ def load_cards():
     return jsonify({'result': 'success', 'corrCard': corrCard})
 
 
-@app.route('/card/update', methods=['POST'])
-def update_cards(nickname):
-    title_receive = request.form['title_give']
-    content_receive = request.form['content_give']
-    db.card.update_one({"nickname": nickname}, {
-        '$set': {"title": title_receive, "content": content_receive}})
-    return jsonify({'result': 'success', 'msg': '수정 완료'})
+@app.route("/card/correct", methods=["POST"])
+def correct_card():
+    user_nickname = request.form["user_nickname"]
+    card_content = request.form["card_content"]
+    youtube_links = request.form.getlist("youtube_links[]")
+    youtuber_comments = request.form.getlist("youtuber_comments[]")
+    channels_info = []
+
+    for url_link, youtuber_comment in zip(youtube_links, youtuber_comments):
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36"
+        }
+        data = requests.get(url_link, headers=headers)
+        soup = BeautifulSoup(data.text, "html.parser")
+
+        og_image = soup.select_one('meta[property="og:image"]')
+        og_title = soup.select_one('meta[property="og:title"]')
+        if not og_image:
+            return jsonify({"result": "fail", "msg": "유효하지 않은 Youtube channel 입니다."})
+
+        channels_info.append(
+            {
+                "url_link": url_link,
+                "channel_image": og_image["content"],
+                "channel_title": og_title["content"],
+                "youtuber_comment": youtuber_comment,
+            }
+        )
+
+    card = {
+        "channels_info": channels_info,
+        "user_nickname": user_nickname,
+        "card_content": card_content,
+        "like_count": 0,
+    }
+    print(card)
+    # 3. mongoDB에 데이터를 넣기
+    db.card.update_one({"user_nickname": user_nickname},
+                       {"$set": card}, upsert=False)
+    return jsonify({"result": "success", "msg": "카드 업데이트 완료!"})
 
 
 @app.route('/delete_card/<nickname>', methods=['POST'])
 def delete_card(nickname):
-    db.card.delete_one({"nickname": nickname})
+    db.card.delete_one({"user_nickname": nickname})
+    db.user.update_one({"user_nickname": nickname}, {"$set": {"liked": []}})
     return redirect(url_for('home'))
 
 

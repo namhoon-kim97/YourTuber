@@ -1,23 +1,23 @@
 {% extends "layout.html" %} {% block javascriptfuction %}
 <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
 <script>
-  $(document).ready(function () {
-    document.querySelectorAll(".card-content").forEach((cardContent) => {
-      cardContent.addEventListener("click", function () {
-        insertCardmodalhtml(cardContent);
-        openModal("card-modal");
-      });
+  $(document).ready(function() {
+    document.querySelectorAll('.card-content').forEach((cardContent) => {
+      cardContent.addEventListener('click', function(event) {
+        if (!event.target.matches('button')) {
+            insertCardmodalhtml(cardContent);
+            openModal('card-modal');
+        }
     });
-
-    document.addEventListener("click", function (event) {
-      var modal = document.querySelector(".modal.is-active");
-      if (modal && modal.contains(event.target)) {
-        $(".card-modal-container").empty();
-        modal.classList.remove("is-active");
-      }
     });
+    document.addEventListener('click', function(event) {
+      var modal = document.querySelector('.modal.is-active');
+      if (modal && modal.contains(event.target) && event.target.classList.contains('modal-background')) {
+          $('.card-modal-container').empty();
+          modal.classList.remove('is-active');
+    }
   });
-
+  });
   function insertCardmodalhtml(cardContent) {
     cardNickname = cardContent.querySelector(".title").textContent;
 
@@ -159,7 +159,7 @@
     return youtubeChannelRegex.test(url);
   }
 
-  function validCheckandPOST() {
+  function validCheckandPOST(user_nickname) {
     var fieldElement = document.getElementById("cardWritebox");
     var inputElements = fieldElement.querySelectorAll("input");
     var textareaElements = fieldElement.querySelectorAll("textarea");
@@ -195,7 +195,7 @@
         type: "POST",
         url: "/post",
         data: {
-          user_nickname: nickname,
+          user_nickname: user_nickname,
           card_content: cardContent,
           youtube_links: channelUrls,
           youtuber_comments: youtuberComments,
@@ -227,14 +227,6 @@ function opencorrectModal(modalId, nickname) {
     data: { nickname: nickname },
     success: function (response) {
       if (response["result"] == "success") {
-        let card = response.corrCard;
-        // 카드 정보를 가져와서 수정 폼에 채우기
-        // for돌려서 card.title.length만큼
-        //
-        $("#card-title").val(card.title);
-        $("#youtube-url").val(card.youtube_url);
-        $("#channel-description").val(card.description);
-        // 수정 모달 열기
         var modal = document.getElementById(modalId);
         modal.classList.add("is-active");
       } else {
@@ -244,29 +236,65 @@ function opencorrectModal(modalId, nickname) {
   });
 }
 
-function correctCard(nickname) {
-  let title = $("#correctedTitle").val();
-  let comment = $("#correctedComment").val();
-  let channel = $("#correctedChannel").val();
-  let count = $("like_count").val();
+function correctCard(user_nickname) {
+  var fieldElement = document.getElementById("cardCorrectbox");
+    var inputElements = fieldElement.querySelectorAll("input");
+    var textareaElements = fieldElement.querySelectorAll("textarea");
+    console.log(inputElements,textareaElements);
 
-  $.ajax({
-    type: "POST",
-    url: "/card/correct",
-    data: { nickname: nickname, title: title },
-    success: function (response) {
-      if (response.result === "success") {
-        alert(response.msg);
-        location.reload();
+    var cardContent = $("#correct-content").val();
+    var channelUrls = [];
+    inputElements.forEach((inputElement) => {
+      var isValid = isValidChannelUrl(inputElement.value);
+      var nextElement = inputElement.nextElementSibling;
+      if (isValid) channelUrls.push(inputElement.value);
+      var message = isValid ? "이 URL은 가능합니다." : "이 URL은 불가능합니다.";
+      var className = isValid ? "is-success" : "is-danger";
+
+      if (nextElement && nextElement.tagName.toLowerCase() === "p") {
+        nextElement.className = `help ${className}`;
+        nextElement.textContent = message;
       } else {
-        alert("서버 오류!");
+        var paragraphElement = document.createElement("p");
+        paragraphElement.classList.add("help", className);
+        paragraphElement.textContent = message;
+        inputElement.insertAdjacentElement("afterend", paragraphElement);
       }
-    },
-    error: function (xhr, status, error) {
-      alert("서버 오류!");
-      console.error(error);
-    },
-  });
+    });
+
+    var youtuberComments = [];
+    textareaElements.forEach((inputElement) => {
+      youtuberComments.push(inputElement.value);
+    });
+
+    if (channelUrls.length == youtuberComments.length) {
+      closeModal("card-correct");
+      $.ajax( {
+
+        type: "POST",
+        url: "/card/correct",
+        data: {
+          user_nickname: user_nickname,
+          card_content: cardContent,
+          youtube_links: channelUrls,
+          youtuber_comments: youtuberComments,
+        },
+        success: function (res) {
+          if (res["result"] == "success") {
+            window.location.href = "/";
+            alert(res["msg"]);
+          } else {
+            alert(res["msg"]);
+          }
+        },
+        error: function (xhr, status, error) {
+          alert("Error:");
+        },
+      });
+    } else {
+      alert("올바른 Youtube channel URL을 입력해 주세요.");
+    }
+
 }
 
 function likeCard(nickname, userNickname) {
@@ -391,7 +419,6 @@ function unlikeCard(nickname, userNickname) {
           <span class="icon is-small is-left">
             <i class="fa-brands fa-youtube"></i>
           </span>
-        </button>
         <button class="button is-danger" onclick="deleteChannelinfo()">
           <span class="icon">
             <i class="fas fa-times"></i>
@@ -401,7 +428,7 @@ function unlikeCard(nickname, userNickname) {
       <!-- Content ... -->
     </section>
     <footer class="modal-card-foot">
-      <button class="button is-success" onclick="validCheckandPOST()">
+      <button class="button is-success" onclick="validCheckandPOST('{{nickname}}')">
         작성 완료
       </button>
     </footer>
@@ -415,7 +442,7 @@ function unlikeCard(nickname, userNickname) {
     {% if loop.index %4 == 1 %}
       <div class="columns is-multiline">
     {% endif %}
-      {% with mylike = mylike, nickname = nickname,card_nickname=card['user_nickname'], like_count=card['like_count'], channels_info= card['channels_info'] %}
+      {% with  nickname = nickname, card_nickname=card['user_nickname'], card=card,channels_info= card['channels_info'] %}
         {% include 'card_templates.html' %}
       {% endwith %}
     {% if loop.index % 4 == 0 %}
