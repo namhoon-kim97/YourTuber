@@ -1,4 +1,12 @@
-from flask import Flask, render_template, jsonify, request, redirect, url_for
+from flask import (
+    Flask,
+    make_response,
+    render_template,
+    jsonify,
+    request,
+    redirect,
+    url_for,
+)
 import requests
 from bs4 import BeautifulSoup
 from pymongo import MongoClient
@@ -21,6 +29,17 @@ def api_register():
     id_receive = data["userId"]
     nickname_receive = data["nickname"]
     pw_receive = data["password"]  # 여기서 pw받을 때 https로 받아야 안전함.
+
+    if search_nickname_in_db(nickname_receive) or search_userId_in_db(id_receive):
+        return (
+            jsonify(
+                {
+                    "result": "error",
+                    "message": "닉네임 또는 이메일이 이미 사용 중입니다.",
+                }
+            ),
+            400,
+        )
 
     pw_hash = hashlib.sha256(pw_receive.encode("utf-8")).hexdigest()
     db.user.insert_one(
@@ -47,14 +66,14 @@ def api_login():
         payload = {
             "id": id_receive,
             "exp": datetime.datetime.now(datetime.timezone.utc)
-            + datetime.timedelta(seconds=5000),
+            + datetime.timedelta(seconds=500),
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
         return jsonify({"result": "success", "token": token})
     else:
         return jsonify(
-            {"result": "fail", "msg": "아이디/비밀번호가 일치하지 않습니다."}
+            {"result": "fail", "msg": "아이디/비밀번호가 올바르지 않습니다."}
         )
 
 
@@ -63,20 +82,44 @@ def login():
     return render_template("login.html")
 
 
+@app.route("/logout")
+def logout():
+    # 로그아웃 처리를 위해 쿠키 삭제 등의 로직을 추가
+    resp = make_response(redirect(url_for("home")))
+    resp.delete_cookie("mytoken")
+    return resp
+
+
 @app.route("/")
 def home():
     token_receive = request.cookies.get("mytoken")
+    # 테스트용더미
+    channels_info = [{'url_link': "https://www.youtube.com/@syukaworld", 'channel_image': "https://yt3.googleusercontent.com/8w2Z1ha57Ya10dqanJzwbYWYfVIOclw7ib3hXKJx9Xa3PlBGZDBRkyMtN83cHmnv78hlEo8tSg=s176-c-k-c0x00ffffff-no-rj-mo",
+                      'channel_title': "syukaworld", 'youtuber_comment': "economics communicator"},
+                     {'url_link': "https://www.youtube.com/@ChimChakMan_Official", 'channel_image': "https://yt3.googleusercontent.com/C7bTHnoo1S_MRbJXn4VwncNpB87C2aioJC_sKvgM-CGw_xgdxwiz0EFEqzj0SRVz6An2h81T4Q=s176-c-k-c0x00ffffff-no-rj",
+                      'channel_title': "calm-down-man", 'youtuber_comment': "storyteller who makes audience recieve king"},
+                     {'url_link': "https://www.youtube.com/@syukaworld", 'channel_image': "https://yt3.googleusercontent.com/8w2Z1ha57Ya10dqanJzwbYWYfVIOclw7ib3hXKJx9Xa3PlBGZDBRkyMtN83cHmnv78hlEo8tSg=s176-c-k-c0x00ffffff-no-rj-mo",
+                      'channel_title': "syukaworld", 'youtuber_comment': "economics communicator"},
+                     {'url_link': "https://www.youtube.com/@ChimChakMan_Official", 'channel_image': "https://yt3.googleusercontent.com/C7bTHnoo1S_MRbJXn4VwncNpB87C2aioJC_sKvgM-CGw_xgdxwiz0EFEqzj0SRVz6An2h81T4Q=s176-c-k-c0x00ffffff-no-rj",
+                      'channel_title': "calm-down-man", 'youtuber_comment': "storyteller who makes a  udience recieve king"}]
+    cards = [{'channels_info': channels_info,
+              'user_nickname': "1",
+              'card_content': "hi I'm eunsik ",
+              'like_count': 99},
+             {'channels_info': channels_info,
+              'user_nickname': "jungler12r3",
+              'card_content': "hi I'm eunsik ",
+              'like_count': 99}]
+    # 여기까지
+
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
-
         user_info = db.user.find_one({"id": payload["id"]})
-        cards = db.card.find({})
-
+        # cards = db.card.find({})
         my_like = user_info.get("liked", [])
-
         return render_template("index.html", cards=cards, my_like=my_like, user_info=user_info, nickname=user_info['nickname'])
     except:
-        return render_template("index.html", nickname=user_info["nickname"], cards=cards)
+        return render_template("index.html")
 
 
 @app.route("/post", methods=["POST"])
@@ -170,6 +213,44 @@ def unlike_cards():
         {"nickname": nickname},
         {"$pull": {"liked": user_nickname}})
     return jsonify({'result': 'success', 'msg': '이거별로네'})
+
+
+def search_nickname_in_db(nickname):
+    print("check nickname db")
+    user = db.user.find_one({"nickname": nickname})
+    return user is not None
+
+
+def search_userId_in_db(userId):
+    print("check userId db")
+    user = db.user.find_one({"id": userId})
+    return user is not None
+
+
+@app.route("/check-nickname", methods=["POST"])
+def check_username():
+    data = request.get_json()
+    nickname = data.get("nickname")
+
+    user_exists = search_nickname_in_db(nickname)
+    if user_exists:
+        return jsonify({"exists": True, "message": "사용자 이름이 이미 사용 중입니다."})
+    else:
+        return jsonify({"exists": False, "message": "사용 가능한 닉네임입니다."})
+
+
+@app.route("/check-userId", methods=["POST"])
+def check_email():
+    data = request.get_json()
+    userId = data.get("userId")
+
+    user_exists = search_userId_in_db(userId)
+    if user_exists:
+        return jsonify(
+            {"exists": True, "message": "사용자 이메일이 이미 사용 중입니다."}
+        )
+    else:
+        return jsonify({"exists": False, "message": "사용 가능한 이메일입니다."})
 
 
 if __name__ == "__main__":

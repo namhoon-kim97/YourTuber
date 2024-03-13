@@ -109,10 +109,15 @@
 {% endblock %} {% block login %}
 <div class="columns is-mobile">
   <div class="column is-offset-11">
+    {% if nickname %}
+    <button class="button is-success" onclick="location.href='/logout'">
+      {{ nickname }} (로그아웃)
+    </button>
+    {% else %}
     <button class="button is-success" onclick="location.href='/login'">
       로그인
     </button>
-    <!-- 로그인 상태면 userNickname보이게 -->
+    {% endif %}
   </div>
 </div>
 {% endblock%} {% block writecard %}
