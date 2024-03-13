@@ -1,32 +1,237 @@
 {% extends "layout.html" %}
 {% block javascriptfuction %}
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
 <script>
+  $(document).ready(function() {
+    document.querySelectorAll('.card-content').forEach((cardContent) => {
+        cardContent.addEventListener('click', function() {
+          insertCardmodalhtml(cardContent);
+          openModal('card-modal');
+        });
+    });
+
+    document.addEventListener('click', function(event) {
+        var modal = document.querySelector('.modal.is-active');
+        if (modal && modal.contains(event.target)) {
+          $('.card-modal-container').empty();  
+          modal.classList.remove('is-active');
+        }
+    });
+  });
+
+  function insertCardmodalhtml(cardContent){
+
+    cardNickname = cardContent.querySelector('.title').textContent;
+
+    var images = cardContent.querySelectorAll('.media-left img');
+    var urls = cardContent.querySelectorAll('.content a');
+    var titles = cardContent.querySelectorAll('.content strong');
+
+    var channelImageurls = [];
+    var channelUrls = [];
+    var channelTitles = [];
+
+    images.forEach(image => {channelImageurls.push(image.src); });
+    urls.forEach(url => {channelUrls.push(url.href); });
+    titles.forEach(title => {channelTitles.push(title.textContent); });
+
+    cardHtml = `<div class="modal is-half" id="card-modal">
+          <div class="modal-background"></div>
+          <div class="modal-card">
+            <header class="modal-card-head">
+              <p class="title">
+                ${cardNickname}
+                <span>
+                  <form action="/like_card/${cardNickname}" method="post">
+                    <button type="submit" class="emoji-button" value="like">❤️</button>
+                  </form>
+                </span>
+              </p>
+            </header>
+            <section class="modal-card-body">
+            <p class="modal-cardcontent">
+              ${cardNickname}
+            </p>
+            <hr class="has-background-grey-lighter"/>
+            <!--article 안에 왼쪽에 사진/ 우측에 그림 위치할 gird 작성-->
+            `
+    for(let i =0; i<channelImageurls.length; i++){
+      cardHtml += `<div class="columns">
+        <div class="column is-1-2">
+          <!-- 왼쪽 컨텐츠 -->
+          <div class="columns">
+            <div class="column is-half">
+              <!-- 왼쪽 상단 이미지 -->
+              <img src=${channelImageurls[i]} alt="Image 1" class="thumnail-image">
+            </div>
+            <div class="column is-half">
+              <!-- 오른쪽 상단 이미지 -->
+              <img src=${channelImageurls[i]} alt="Image 2" class="thumnail-image">
+            </div>
+          </div>
+          <div class="columns">
+            <div class="column is-half">
+              <!-- 왼쪽 하단 이미지 -->
+              <img src=${channelImageurls[i]} alt="Image 3" class="thumnail-image">
+            </div>
+            <div class="column is-half">
+              <!-- 오른쪽 하단 이미지 -->
+              <img src=${channelImageurls[i]} alt="Image 4" class="thumnail-image">
+            </div>
+          </div>
+        </div>
+        <div class="column">
+          <!-- 오른쪽 컨텐츠 -->
+          <article class="media">
+            <figure class="media-left">
+              <p class="image is-16x16">
+                <img src=${channelImageurls[i]} />
+              </p>
+            </figure>
+            <div class="media-content">
+              <div class="content">
+                <p><a href=${channelUrls[i]}><strong >${channelTitles[i]}</strong></a></p>
+              </div>
+            </div>
+            </article>
+            ${cardNickname}
+        </div>
+      </div>`
+  
+      if (i-1 !== channelImageurls.length){ 
+      cardHtml += `<hr class="has-background-grey-lighter"/>`
+      }
+    }
+      cardHtml += `</div>            
+                  </section>
+                </div>
+              </div>`;
+      $('.card-modal-container').append(cardHtml);
+  }
+
+
   function openModal(modalId) {
       var modal = document.getElementById(modalId);
       modal.classList.add('is-active');
   }
 
   function closeModal(modalId) {
-      var modal = document.getElementById(modalId);
-      modal.classList.remove('is-active');
+    var modal = document.getElementById(modalId);
+    modal.classList.remove('is-active');
+
+  }
+
+  function addChannelinfo(){
+    var fieldElement = document.getElementById('cardWritebox');
+    var inputElements = fieldElement.querySelectorAll('input');
+    if (inputElements.length <= 2){
+              $('#cardWritebox').append(`<div class="channel-info">
+                <label class="label">Youtube channel URL</label>
+              <div class="control has-icons-left has-icons-right">
+                <input class="input is-success" type="text" placeholder="https://www.youtube.com/~~~">
+                <span class="icon is-small is-left">
+                  <i class="fa-brands fa-youtube"></i>
+                </span>
+              </div>
+              <label class="label">youtuber 소개글</label>
+              <div class="control">
+                <textarea class="textarea" placeholder="소개글 작성"></textarea>
+              </div>
+            </div>`);
+      }else{
+        alert("최대 3개까지 입력 가능합니다.");
+      }
+  }
+
+  function deleteChannelinfo(){
+    var fieldElements = document.getElementsByClassName('channel-info');
+    if (fieldElements.length >= 2){
+      fieldElements[fieldElements.length-1].remove();
+      } else {
+        alert("최대 1개는 입력해야 합니다.");
+      }
+  }
+
+  function isValidChannelUrl(url){
+    const youtubeChannelRegex = /^https?:\/\/(www\.)?youtube\.com\/@[\w-]+$/;
+    return youtubeChannelRegex.test(url);
+  }
+
+  function validCheckandPOST(){
+    var fieldElement = document.getElementById('cardWritebox');
+    var inputElements = fieldElement.querySelectorAll('input');
+    var textareaElements = fieldElement.querySelectorAll('textarea');
+    var cardContent = $('#card-content').val();
+
+    var channelUrls = [];
+    inputElements.forEach(inputElement => {
+      var isValid = isValidChannelUrl(inputElement.value);
+      var nextElement = inputElement.nextElementSibling;
+      if (isValid) channelUrls.push(inputElement.value);
+      var message = isValid ? '이 URL은 가능합니다.' : '이 URL은 불가능합니다.';
+      var className = isValid ? 'is-success' : 'is-danger';
+
+        if (nextElement && nextElement.tagName.toLowerCase() === 'p') {
+            nextElement.className = `help ${className}`;
+            nextElement.textContent = message;
+        } else {
+          var paragraphElement = document.createElement('p');
+            paragraphElement.classList.add('help', className);
+            paragraphElement.textContent = message;
+            inputElement.insertAdjacentElement('afterend', paragraphElement);
+        }
+    });
+
+    var youtuberComments = [];
+    textareaElements.forEach(inputElement => {
+      youtuberComments.push(inputElement.value); });
+
+    if (channelUrls.length == youtuberComments.length){
+      closeModal('card-write');
+      $.ajax({
+        type:'POST',
+        url:'/post',
+        data:{'user_nickname': {{nickname}}, 'card_content': cardContent, 
+              'youtube_links': channelUrls, 'youtuber_comments':youtuberComments},
+        success: function(res){
+          if (res['result'] == 'success'){
+            window.location.href = '/';
+            alert(res['msg']);
+          } else{
+            alert(res['msg']);
+          }
+        } ,
+        error: function(xhr, status, error) {
+          alert("Error:");
+      }
+      })
+    } else {
+      alert('올바른 Youtube channel URL을 입력해 주세요.')
+    }
   }
 </script>
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 {% endblock %}
 {% block login %}
 <div class="columns is-mobile">
-  <div class="column is-offset-11">
-    <button class="button is-success" onclick="location.href='/login'">로그인</button>
-    <!-- 로그인 상태면 userNickname보이게 -->
-  </div>
+  {% if not nickname %}
+    <div class="column is-offset-11">
+      <button class="button is-success" onclick="location.href='/login'">로그인</button>
+      <!-- 로그인 상태면 userNickname보이게 -->
+    </div>
+  {% endif %}
 </div>
-{% endblock%}
+{% endblock %}
 {% block writecard %}
-<div class="columns is-mobile">
-  <div class="column is-offset-11">
-    <a class="button is-primary is-large" onclick="openModal('card-write')">글 작성</a>
-  </div>
-</div>
+  {% if nickname %}
+    <div class="columns is-mobile">
+      <div class="column is-offset-11">
+        <a class="button is-primary" onclick="openModal('card-write')">글 작성</a>
+      </div>
+    </div>
+  {% endif %}
+
 <div class="modal" id="card-write">
   <div class="modal-background"></div>
   <div class="modal-card">
@@ -35,41 +240,61 @@
       <button class="delete" aria-label="close" onclick="closeModal('card-write')"></button>
     </header>
     <section class="modal-card-body">
+
       <div class="field">
         <label class="label">카드글 작성</label>
         <div class="control">
-          <textarea class="textarea" placeholder="게시글 작성"></textarea>
+          <textarea class="textarea" placeholder="게시글 작성" id="card-content"></textarea>
         </div>
-        <label class="label">Youtube channel URL</label>
-        <div class="control has-icons-left has-icons-right">
-          <input class="input is-success" type="text" placeholder="https://www.youtube.com/~~~">
-          <span class="icon is-small is-left">
-            <i class="fa-brands fa-youtube"></i>
+      </div>
+      <div class="field" id="cardWritebox">
+        <div class="channel-info">
+          <label class="label">Youtube channel URL</label>
+          <div class="control has-icons-left has-icons-right">
+            <input class="input is-success" type="text" placeholder="https://www.youtube.com/~~~">
+            <span class="icon is-small is-left">
+              <i class="fa-brands fa-youtube"></i>
+            </span>
+          </div>
+          <label class="label">youtuber 소개글</label>
+          <div class="control">
+            <textarea class="textarea" placeholder="소개글 작성"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="has-text-centered">
+        <button class="button is-success" onclick="addChannelinfo()">
+          <span class="icon">
+            <i class="fas fa-plus"></i>
           </span>
-        </div>
-        <p class="help is-success">This username is available</p>
-        <p class="help is-danger">This username is not available</p>
-        <label class="label">youtuber 소개글</label>
-        <div class="control">
-          <textarea class="textarea" placeholder="소개글 작성"></textarea>
-        </div>
+        </button>
+        <button class="button is-danger" onclick="deleteChannelinfo()">
+          <span class="icon">
+            <i class="fas fa-times"></i>
+          </span>
+        </button>
       </div>
       <!-- Content ... -->
     </section>
     <footer class="modal-card-foot">
-      <button class="button is-success">작성 완료</button>
+      <button class="button is-success" onclick="validCheckandPOST()">작성 완료</button>
     </footer>
   </div>
 </div>
 {% endblock%}
 {% block body %}
-  <div class="columns is-multiline">
-    <!-- 쌓이게 -->
-    {% for card in cards %}
-      {% with user_nickname=card['user_nickname'], like_count=card['like_count'], channels_info= card['channels_info'] %}
+  <div class='card-modal-container'></div>
+  <!-- 3개씩 쌓이게 -->
+  {% for card in cards %}
+    {% if loop.index % 4 == 1 %}
+      <div class="columns is-multiline">
+    {% endif %}
+      {% with card_nickname=card['user_nickname'], like_count=card['like_count'], channels_info= card['channels_info'] %}
         {% include 'card_templates.html' %}
       {% endwith %}
-    {% endfor %}
-  </div>
+    {% if loop.index % 4 == 0 %}
+      </div>
+    {% endif %}
+  {% endfor %}
 {% endblock %}
 
