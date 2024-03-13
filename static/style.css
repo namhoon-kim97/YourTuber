@@ -24,3 +24,14 @@
   width: 450px; 
 }
 
+.emoji-button{
+  float: right;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;  
+
+}
+.card-footer {  display: flex;
+  justify-content: flex-end;
+}

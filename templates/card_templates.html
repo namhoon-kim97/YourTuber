@@ -1,7 +1,7 @@
 <!-- card_templates.html -->
-<div class="column is-one-third">
+<div class="column is-3">
   <div class="card">
-    <div class="card-content" style="padding-bottom: 10px">
+    <div class="card-content" style="padding-bottom: 10px; cursor: pointer">
       <!-- 카드 제목 -->
       <!-- like unlike 모아둠  -->
 
@@ -26,6 +26,7 @@
       <!-- like unlike 여기까지 -->
 
       <p class="title">
+        {{nickname}}
         <span style="font-size: 0.8em">{{user_nickname}} </span>
       </p>
       <hr class="has-background-grey-lighter" />
@@ -60,7 +61,7 @@
         class="card-footer"
         style="min-height: 50px; display: flex; align-items: center"
       >
-        {% if user_nickname == nickname %}
+ 
 
         <!-- 수정버튼 -->
         <div class="modal" id="card-correct">

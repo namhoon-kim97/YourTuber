@@ -1,10 +1,6 @@
-<<<<<<< HEAD
 {% extends "layout.html" %}
 {% block javascriptfuction %}
 <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-=======
-{% extends "layout.html" %} {% block javascriptfuction %}
->>>>>>> 285ba162727c681dee84d640846422d46f847b6c
 <script>
   $(document).ready(function() {
     document.querySelectorAll('.card-content').forEach((cardContent) => {
@@ -121,7 +117,6 @@
 
   function closeModal(modalId) {
     var modal = document.getElementById(modalId);
-<<<<<<< HEAD
     modal.classList.remove('is-active');
 
   }
@@ -196,7 +191,7 @@
       $.ajax({
         type:'POST',
         url:'/post',
-        data:{'user_nickname': {{nickname}}, 'card_content': cardContent, 
+        data:{'user_nickname': nickname, 'card_content': cardContent, 
               'youtube_links': channelUrls, 'youtuber_comments':youtuberComments},
         success: function(res){
           if (res['result'] == 'success'){
@@ -214,128 +209,103 @@
       alert('올바른 Youtube channel URL을 입력해 주세요.')
     }
   }
-</script>
 
+
+function opencorrectModal(modalId, nickname) {
+  var modal = document.getElementById(modalId);
+  modal.classList.add("is-active");
+  $.ajax({
+    type: "POST",
+    url: "/card/load",
+    data: { nickname: nickname },
+    success: function (response) {
+      if (response["result"] == "success") {
+        let card = response.corrCard;
+        // 카드 정보를 가져와서 수정 폼에 채우기
+        // for돌려서 card.title.length만큼
+        //
+        $("#card-title").val(card.title);
+        $("#youtube-url").val(card.youtube_url);
+        $("#channel-description").val(card.description);
+        // 수정 모달 열기
+        var modal = document.getElementById(modalId);
+        modal.classList.add("is-active");
+      } else {
+        alert("서버 오류!");
+      }
+    },
+  });
+}
+
+function correctCard(nickname) {
+  let title = $("#correctedTitle").val();
+  let comment = $("#correctedComment").val();
+  let channel = $("#correctedChannel").val();
+  let count = $("like_count").val();
+
+  $.ajax({
+    type: "POST",
+    url: "/card/correct",
+    data: { nickname: nickname, title: title },
+    success: function (response) {
+      if (response.result === "success") {
+        alert(response.msg);
+        location.reload();
+      } else {
+        alert("서버 오류!");
+      }
+    },
+    error: function (xhr, status, error) {
+      alert("서버 오류!");
+      console.error(error);
+    },
+  });
+}
+
+function likeCard(nickname, userNickname) {
+  $.ajax({
+    type: "POST",
+    url: "/card/like",
+    data: { nickname: nickname, user_nickname: userNickname },
+    success: function (response) {
+      if (response.result === "success") {
+        alert(response.msg);
+        location.reload();
+      } else {
+        alert("서버 오류!");
+      }
+    },
+    error: function (xhr, status, error) {
+      alert("서버 오류!");
+      console.error(error);
+    },
+  });
+}
+
+function unlikeCard(nickname, userNickname) {
+  $.ajax({
+    type: "POST",
+    url: "/card/unlike",
+    data: { nickname: nickname, user_nickname: userNickname },
+    success: function (response) {
+      if (response.result === "success") {
+        alert(response.msg);
+        location.reload();
+      } else {
+        alert("서버 오류!");
+      }
+    },
+    error: function (xhr, status, error) {
+      alert("서버 오류!");
+      console.error(error);
+    },
+  });
+}
+</script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-{% endblock %}
-{% block login %}
-<div class="columns is-mobile">
-  {% if not nickname %}
-    <div class="column is-offset-11">
-      <button class="button is-success" onclick="location.href='/login'">로그인</button>
-      <!-- 로그인 상태면 userNickname보이게 -->
-    </div>
-  {% endif %}
-</div>
-{% endblock %}
-{% block writecard %}
-  {% if nickname %}
-    <div class="columns is-mobile">
-      <div class="column is-offset-11">
-        <a class="button is-primary" onclick="openModal('card-write')">글 작성</a>
-      </div>
-    </div>
-  {% endif %}
+ 
 
-=======
-    modal.classList.remove("is-active");
-  }
-  // 수정모달오픈
-  function opencorrectModal(modalId, nickname) {
-    var modal = document.getElementById(modalId);
-    modal.classList.add("is-active");
-    $.ajax({
-      type: "POST",
-      url: "/card/load",
-      data: { nickname: nickname },
-      success: function (response) {
-        if (response["result"] == "success") {
-          let card = response.corrCard;
-          // 카드 정보를 가져와서 수정 폼에 채우기
-          // for돌려서 card.title.length만큼
-          //
-          $("#card-title").val(card.title);
-          $("#youtube-url").val(card.youtube_url);
-          $("#channel-description").val(card.description);
-          // 수정 모달 열기
-          var modal = document.getElementById(modalId);
-          modal.classList.add("is-active");
-        } else {
-          alert("서버 오류!");
-        }
-      },
-    });
-  }
-
-  function correctCard(nickname) {
-    let title = $("#correctedTitle").val();
-    let comment = $("#correctedComment").val();
-    let channel = $("#correctedChannel").val();
-    let count = $("like_count").val();
-
-    $.ajax({
-      type: "POST",
-      url: "/card/correct",
-      data: { nickname: nickname, title: title },
-      success: function (response) {
-        if (response.result === "success") {
-          alert(response.msg);
-          location.reload();
-        } else {
-          alert("서버 오류!");
-        }
-      },
-      error: function (xhr, status, error) {
-        alert("서버 오류!");
-        console.error(error);
-      },
-    });
-  }
-
-  function likeCard(nickname, userNickname) {
-    $.ajax({
-      type: "POST",
-      url: "/card/like",
-      data: { nickname: nickname, user_nickname: userNickname },
-      success: function (response) {
-        if (response.result === "success") {
-          alert(response.msg);
-          location.reload();
-        } else {
-          alert("서버 오류!");
-        }
-      },
-      error: function (xhr, status, error) {
-        alert("서버 오류!");
-        console.error(error);
-      },
-    });
-  }
-
-  function unlikeCard(nickname, userNickname) {
-    $.ajax({
-      type: "POST",
-      url: "/card/unlike",
-      data: { nickname: nickname, user_nickname: userNickname },
-      success: function (response) {
-        if (response.result === "success") {
-          alert(response.msg);
-          location.reload();
-        } else {
-          alert("서버 오류!");
-        }
-      },
-      error: function (xhr, status, error) {
-        alert("서버 오류!");
-        console.error(error);
-      },
-    });
-  }
-</script>
-<link
-  rel="stylesheet"
-  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-/>
+ 
 {% endblock %} {% block login %}
 <div class="columns is-mobile">
   <div class="column is-offset-11">
@@ -358,7 +328,6 @@
     >
   </div>
 </div>
->>>>>>> 285ba162727c681dee84d640846422d46f847b6c
 <div class="modal" id="card-write">
   <div class="modal-background"></div>
   <div class="modal-card">
@@ -377,7 +346,6 @@
         <div class="control">
           <textarea class="textarea" placeholder="게시글 작성" id="card-content"></textarea>
         </div>
-<<<<<<< HEAD
       </div>
       <div class="field" id="cardWritebox">
         <div class="channel-info">
@@ -398,7 +366,6 @@
         <button class="button is-success" onclick="addChannelinfo()">
           <span class="icon">
             <i class="fas fa-plus"></i>
-=======
         <label class="label">Youtube channel URL</label>
         <div class="control has-icons-left has-icons-right">
           <input
@@ -408,7 +375,6 @@
           />
           <span class="icon is-small is-left">
             <i class="fa-brands fa-youtube"></i>
->>>>>>> 285ba162727c681dee84d640846422d46f847b6c
           </span>
         </button>
         <button class="button is-danger" onclick="deleteChannelinfo()">
@@ -424,13 +390,12 @@
     </footer>
   </div>
 </div>
-<<<<<<< HEAD
 {% endblock%}
 {% block body %}
   <div class='card-modal-container'></div>
   <!-- 3개씩 쌓이게 -->
   {% for card in cards %}
-    {% if loop.index % 4 == 1 %}
+    {% if loop.index %4 == 1 %}
       <div class="columns is-multiline">
     {% endif %}
       {% with card_nickname=card['user_nickname'], like_count=card['like_count'], channels_info= card['channels_info'] %}
@@ -440,13 +405,4 @@
       </div>
     {% endif %}
   {% endfor %}
-=======
-{% endblock%} {% block body %}
-<div class="columns is-multiline">
-  <!-- 쌓이게 -->
-  {% for card in cards %} {% with user_nickname=card['user_nickname'],
-  like_count=card['like_count'], channels_info=card['channels_info'], my_like =
-  my_like %} {% include 'card_templates.html' %} {% endwith %} {% endfor %}
-</div>
->>>>>>> 285ba162727c681dee84d640846422d46f847b6c
-{% endblock %}
+{% endblock%}
