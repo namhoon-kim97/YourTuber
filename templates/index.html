@@ -1,30 +1,39 @@
-{% extends "layout.html" %}
-{% block javascriptfuction %}
+{% extends "layout.html" %} {% block javascriptfuction %}
 <script>
   function openModal(modalId) {
-      var modal = document.getElementById(modalId);
-      modal.classList.add('is-active');
+    var modal = document.getElementById(modalId);
+    modal.classList.add("is-active");
   }
 
   function closeModal(modalId) {
-      var modal = document.getElementById(modalId);
-      modal.classList.remove('is-active');
+    var modal = document.getElementById(modalId);
+    modal.classList.remove("is-active");
   }
 </script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-{% endblock %}
-{% block login %}
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+/>
+{% endblock %} {% block login %}
 <div class="columns is-mobile">
   <div class="column is-offset-11">
-    <button class="button is-success" onclick="location.href='/login'">로그인</button>
-    <!-- 로그인 상태면 userNickname보이게 -->
+    {% if nickname %}
+    <button class="button is-success" onclick="location.href='/logout'">
+      {{ nickname }} (로그아웃)
+    </button>
+    {% else %}
+    <button class="button is-success" onclick="location.href='/login'">
+      로그인
+    </button>
+    {% endif %}
   </div>
 </div>
-{% endblock%}
-{% block writecard %}
+{% endblock%} {% block writecard %}
 <div class="columns is-mobile">
   <div class="column is-offset-11">
-    <a class="button is-primary is-large" onclick="openModal('card-write')">글 작성</a>
+    <a class="button is-primary is-large" onclick="openModal('card-write')"
+      >글 작성</a
+    >
   </div>
 </div>
 <div class="modal" id="card-write">
@@ -32,7 +41,11 @@
   <div class="modal-card">
     <header class="modal-card-head">
       <p class="modal-card-title">글 작성</p>
-      <button class="delete" aria-label="close" onclick="closeModal('card-write')"></button>
+      <button
+        class="delete"
+        aria-label="close"
+        onclick="closeModal('card-write')"
+      ></button>
     </header>
     <section class="modal-card-body">
       <div class="field">
@@ -42,7 +55,11 @@
         </div>
         <label class="label">Youtube channel URL</label>
         <div class="control has-icons-left has-icons-right">
-          <input class="input is-success" type="text" placeholder="https://www.youtube.com/~~~">
+          <input
+            class="input is-success"
+            type="text"
+            placeholder="https://www.youtube.com/~~~"
+          />
           <span class="icon is-small is-left">
             <i class="fa-brands fa-youtube"></i>
           </span>
@@ -61,15 +78,11 @@
     </footer>
   </div>
 </div>
-{% endblock%}
-{% block body %}
-  <div class="columns is-multiline">
-    <!-- 쌓이게 -->
-    {% for card in cards %}
-      {% with user_nickname=card['user_nickname'], like_count=card['like_count'], channels_info= card['channels_info'] %}
-        {% include 'card_templates.html' %}
-      {% endwith %}
-    {% endfor %}
-  </div>
+{% endblock%} {% block body %}
+<div class="columns is-multiline">
+  <!-- 쌓이게 -->
+  {% for card in cards %} {% with user_nickname=card['user_nickname'],
+  like_count=card['like_count'], channels_info= card['channels_info'] %} {%
+  include 'card_templates.html' %} {% endwith %} {% endfor %}
+</div>
 {% endblock %}
-

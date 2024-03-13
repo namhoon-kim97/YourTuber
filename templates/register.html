@@ -20,22 +20,115 @@
     </style>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            let isNicknameValid = false;
+            let isUserIdValid = false;
+            let isPasswordValid = false;
+            let debounceTimer;
+
+            $("#nickname").on("input", function() {
+                clearTimeout(debounceTimer);
+
+                debounceTimer = setTimeout(function() {
+                    let nickname = $("#nickname").val();
+
+                    if (nickname.length < 3 || nickname.length > 20) {
+                        $("#nickname-feedback").text("닉네임은 3자 이상, 20자 이하로 설정해주세요.").css("color", "red");
+                        isNicknameValid = false;
+                        return;
+                    }
+
+                    // 특수 문자 제한 검사 (알파벳, 숫자, -, _만 허용)
+                    if (!/^[a-zA-Z0-9]+$/.test(nickname)) {
+                        $("#nickname-feedback").text("닉네임에는 알파벳, 숫자만 사용할 수 있습니다.").css("color", "red");
+                        isNicknameValid = false;
+                        return;
+                    }
+
+                    $.ajax({
+                        url: '/check-nickname',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({nickname: nickname}),
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.exists) {
+                                // 중복이 있으면 경고 메시지 표시
+                                $("#nickname-feedback").text(response.message).css("color", "red");
+                                isNicknameValid = false;
+                            } else {
+                                // 사용 가능하면 안내 메시지 표시
+                                $("#nickname-feedback").text(response.message).css("color", "green");
+                                isNicknameValid = true;
+                            }
+                        }
+                    });
+                }, 500);
+            });
+
+            $("#userId").on("input", function() {
+                clearTimeout(debounceTimer);
+
+                debounceTimer = setTimeout(function() {
+                    let userId = $("#userId").val();
+
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(userId)) {
+                        $("#id-feedback").text("유효한 이메일 형식이 아닙니다.").css("color", "red");
+                        isUserIdValid = false;
+                        return;
+                    }
+                
+                    $.ajax({
+                        url: '/check-userId',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({userId: userId}),
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.exists) {
+                                // 중복이 있으면 경고 메시지 표시
+                                $("#id-feedback").text(response.message).css("color", "red");
+                                isUserIdValid = false;
+                            } else {
+                                // 사용 가능하면 안내 메시지 표시
+                                $("#id-feedback").text(response.message).css("color", "green");
+                                isUserIdValid = true;
+                            }
+                        }
+                    });
+                }, 500);
+            });
+
+            $("#password, #passwordConfirm").on("input", function() {
+                let password = $("#password").val();
+                let confirmPassword = $("#passwordConfirm").val();
+
+                // 비밀번호와 비밀번호 확인이 일치하는지 검사
+                if(password !== confirmPassword) {
+                    $("#password-feedback").text("비밀번호와 비밀번호 확인이 일치하지 않습니다.").css("color", "red");
+                    isPasswordValid = false;
+                } else {
+                    // 입력이 없는 초기 상태를 고려하여 빈 문자열일 때는 메시지를 표시하지 않음
+                    if(password.length > 0 && confirmPassword.length > 0) {
+                        $("#password-feedback").text("비밀번호가 일치합니다.").css("color", "green");
+                    } else {
+                        $("#password-feedback").text("");
+                    }
+                    isPasswordValid = true;
+                }
+            });
+
             document.getElementById("registerForm").addEventListener("submit", function(e) {
-                e.preventDefault();
-
-                let password = document.getElementById("password").value;
-                let confirmPassword = document.getElementById("passwordConfirm").value;
-
-                if (password !== confirmPassword) {
-                    alert("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
+                if (!isNicknameValid || !isUserIdValid || !isPasswordValid) {
+                    e.preventDefault();
+                    alert("양식을 올바르게 채워주세요.");
                     return false;
                 }
 
                 let formData = {
-                    nickname: $('#nickname').val(),
-                    userId: $('#userId').val(),
-                    password: $('#password').val(),
-                    passwordConfirm: $('#passwordConfirm').val()
+                    'nickname': $('#nickname').val(),
+                    'userId': $('#userId').val(),
+                    'password': $('#password').val(),
                 };
 
                 $.ajax({
@@ -48,7 +141,7 @@
                         if (response.result === "success") {
                             window.location.href = "/login"; // 회원가입 성공 시 로그인 페이지로 리다이렉트
                         } else {
-                            alert("회원가입이 실패하였습니다."); // 이미 존재하는 nickname or Id입니다. 
+                            alert("회원가입이 실패하였습니다.");
                         }
                     },
                     error: function(xhr, status, error) {
@@ -88,13 +181,18 @@
                         <div class="control has-icons-left">
                             <input id="nickname" type="text" placeholder="" class="input" required>
                         </div>
+                        <p id="nickname-feedback"></p>
                     </div>
 
                     <div class="field">
-                        <label for="userId" class="label">ID</label>
+                        <label for="userId" class="label">Email</label>
                         <div class="control has-icons-left">
-                            <input id="userId" type="text" placeholder="" class="input" required>
+                            <input id="userId" type="email" placeholder="abcd@ab.ck" class="input" required>
+                            <span class="icon is-small is-left">
+                                <i class="fa fa-envelope"></i>
+                            </span>
                         </div>
+                        <p id="id-feedback"></p>
                     </div>
                     <div class="field">
                         <label for="password" class="label">Password</label>
@@ -114,6 +212,7 @@
                                 <i class="fa fa-lock"></i>
                             </span>
                         </div>
+                        <p id="password-feedback"></p>
                     </div>
 
                     <div class="field">
