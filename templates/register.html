@@ -138,8 +138,7 @@
                     contentType: "application/json",
                     dataType: "json",
                     success: function(response) {
-                        if (response.result === "success") {
-    
+                        if (response['result'] === "success") {
                             window.location.href = "/login"; // 회원가입 성공 시 로그인 페이지로 리다이렉트
                         } else {
                             alert("회원가입이 실패하였습니다.");

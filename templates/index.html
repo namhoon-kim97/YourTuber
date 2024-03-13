@@ -1,5 +1,4 @@
-{% extends "layout.html" %}
-{% block javascriptfuction %}
+{% extends "layout.html" %} {% block javascriptfuction %}
 <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
 <script>
   $(document).ready(function() {
@@ -46,10 +45,10 @@
           <div class="modal-card">
             <header class="modal-card-head">
               <p class="title">
-                ${cardNickname}
+                ${cardDetail['user_nickname']}
                 <span>
-                  <form action="/like_card/${cardNickname}" method="post">
-                    <button type="submit" class="emoji-button" value="like">❤️${cardDetail['like_count']}</button>
+                  <form action="/like_card/${cardDetail['user_nickname']}" method="post">
+                    <button type="submit" class="emoji-button" value="like">❤️${cardDetail["like_count"]}</button>
                   </form>
                 </span>
               </p>
@@ -121,15 +120,14 @@
 
   function closeModal(modalId) {
     var modal = document.getElementById(modalId);
-    modal.classList.remove('is-active');
-
+    modal.classList.remove("is-active");
   }
 
-  function addChannelinfo(){
-    var fieldElement = document.getElementById('cardWritebox');
-    var inputElements = fieldElement.querySelectorAll('input');
-    if (inputElements.length <= 2){
-              $('#cardWritebox').append(`<div class="channel-info">
+  function addChannelinfo() {
+    var fieldElement = document.getElementById("cardWritebox");
+    var inputElements = fieldElement.querySelectorAll("input");
+    if (inputElements.length <= 2) {
+      $("#cardWritebox").append(`<div class="channel-info">
                 <label class="label">Youtube channel URL</label>
               <div class="control has-icons-left has-icons-right">
                 <input class="input is-success" type="text" placeholder="https://www.youtube.com/~~~">
@@ -142,21 +140,21 @@
                 <textarea class="textarea" placeholder="소개글 작성"></textarea>
               </div>
             </div>`);
-      }else{
-        alert("최대 3개까지 입력 가능합니다.");
-      }
+    } else {
+      alert("최대 3개까지 입력 가능합니다.");
+    }
   }
 
-  function deleteChannelinfo(){
-    var fieldElements = document.getElementsByClassName('channel-info');
-    if (fieldElements.length >= 2){
-      fieldElements[fieldElements.length-1].remove();
-      } else {
-        alert("최대 1개는 입력해야 합니다.");
-      }
+  function deleteChannelinfo() {
+    var fieldElements = document.getElementsByClassName("channel-info");
+    if (fieldElements.length >= 2) {
+      fieldElements[fieldElements.length - 1].remove();
+    } else {
+      alert("최대 1개는 입력해야 합니다.");
+    }
   }
 
-  function isValidChannelUrl(url){
+  function isValidChannelUrl(url) {
     const youtubeChannelRegex = /^https?:\/\/(www\.)?youtube\.com\/@[\w-]+$/;
     return youtubeChannelRegex.test(url);
   }
@@ -168,30 +166,31 @@
     var cardContent = $('#card-content').val();
 
     var channelUrls = [];
-    inputElements.forEach(inputElement => {
+    inputElements.forEach((inputElement) => {
       var isValid = isValidChannelUrl(inputElement.value);
       var nextElement = inputElement.nextElementSibling;
       if (isValid) channelUrls.push(inputElement.value);
-      var message = isValid ? '이 URL은 가능합니다.' : '이 URL은 불가능합니다.';
-      var className = isValid ? 'is-success' : 'is-danger';
+      var message = isValid ? "이 URL은 가능합니다." : "이 URL은 불가능합니다.";
+      var className = isValid ? "is-success" : "is-danger";
 
-        if (nextElement && nextElement.tagName.toLowerCase() === 'p') {
-            nextElement.className = `help ${className}`;
-            nextElement.textContent = message;
-        } else {
-          var paragraphElement = document.createElement('p');
-            paragraphElement.classList.add('help', className);
-            paragraphElement.textContent = message;
-            inputElement.insertAdjacentElement('afterend', paragraphElement);
-        }
+      if (nextElement && nextElement.tagName.toLowerCase() === "p") {
+        nextElement.className = `help ${className}`;
+        nextElement.textContent = message;
+      } else {
+        var paragraphElement = document.createElement("p");
+        paragraphElement.classList.add("help", className);
+        paragraphElement.textContent = message;
+        inputElement.insertAdjacentElement("afterend", paragraphElement);
+      }
     });
 
     var youtuberComments = [];
-    textareaElements.forEach(inputElement => {
-      youtuberComments.push(inputElement.value); });
+    textareaElements.forEach((inputElement) => {
+      youtuberComments.push(inputElement.value);
+    });
 
-    if (channelUrls.length == youtuberComments.length){
-      closeModal('card-write');
+    if (channelUrls.length == youtuberComments.length) {
+      closeModal("card-write");
       $.ajax({
         type:'POST',
         url:'/post',
@@ -203,37 +202,134 @@
           } else{
             alert(res['msg']);
           }
-        } ,
-        error: function(xhr, status, error) {
+        },
+        error: function (xhr, status, error) {
           alert("Error:");
-      }
-      })
+        },
+      });
     } else {
-      alert('올바른 Youtube channel URL을 입력해 주세요.')
+      alert("올바른 Youtube channel URL을 입력해 주세요.");
     }
   }
+
+
+function opencorrectModal(modalId, nickname) {
+  var modal = document.getElementById(modalId);
+  modal.classList.add("is-active");
+  $.ajax({
+    type: "POST",
+    url: "/card/load",
+    data: { nickname: nickname },
+    success: function (response) {
+      if (response["result"] == "success") {
+        let card = response.corrCard;
+        // 카드 정보를 가져와서 수정 폼에 채우기
+        // for돌려서 card.title.length만큼
+        //
+        $("#card-title").val(card.title);
+        $("#youtube-url").val(card.youtube_url);
+        $("#channel-description").val(card.description);
+        // 수정 모달 열기
+        var modal = document.getElementById(modalId);
+        modal.classList.add("is-active");
+      } else {
+        alert("서버 오류!");
+      }
+    },
+  });
+}
+
+function correctCard(nickname) {
+  let title = $("#correctedTitle").val();
+  let comment = $("#correctedComment").val();
+  let channel = $("#correctedChannel").val();
+  let count = $("like_count").val();
+
+  $.ajax({
+    type: "POST",
+    url: "/card/correct",
+    data: { nickname: nickname, title: title },
+    success: function (response) {
+      if (response.result === "success") {
+        alert(response.msg);
+        location.reload();
+      } else {
+        alert("서버 오류!");
+      }
+    },
+    error: function (xhr, status, error) {
+      alert("서버 오류!");
+      console.error(error);
+    },
+  });
+}
+
+function likeCard(nickname, userNickname) {
+  $.ajax({
+    type: "POST",
+    url: "/card/like",
+    data: { nickname: nickname, user_nickname: userNickname },
+    success: function (response) {
+      if (response.result === "success") {
+        alert(response.msg);
+        location.reload();
+      } else {
+        alert("서버 오류!");
+      }
+    },
+    error: function (xhr, status, error) {
+      alert("서버 오류!");
+      console.error(error);
+    },
+  });
+}
+
+function unlikeCard(nickname, userNickname) {
+  $.ajax({
+    type: "POST",
+    url: "/card/unlike",
+    data: { nickname: nickname, user_nickname: userNickname },
+    success: function (response) {
+      if (response.result === "success") {
+        alert(response.msg);
+        location.reload();
+      } else {
+        alert("서버 오류!");
+      }
+    },
+    error: function (xhr, status, error) {
+      alert("서버 오류!");
+      console.error(error);
+    },
+  });
+}
 </script>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-{% endblock %}
-{% block login %}
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+/>
+{% endblock %} {% block login %}
 <div class="columns is-mobile">
-  {% if not nickname %}
-    <div class="column is-offset-11">
-      <button class="button is-success" onclick="location.href='/login'">로그인</button>
-      <!-- 로그인 상태면 userNickname보이게 -->
-    </div>
-  {% endif %}
+  <div class="column is-offset-11">
+    {% if nickname %}
+    <button class="button is-success" onclick="location.href='/logout'">
+      {{ nickname }} (로그아웃)
+    </button>
+    {% else %}
+    <button class="button is-success" onclick="location.href='/login'">
+      로그인
+    </button>
+    {% endif %}
+  </div>
 </div>
-{% endblock %}
-{% block writecard %}
-  {% if nickname %}
-    <div class="columns is-mobile">
-      <div class="column is-offset-11">
-        <a class="button is-primary" onclick="openModal('card-write')">글 작성</a>
-      </div>
-    </div>
-  {% endif %}
+{% endblock %} {% block writecard %} {% if nickname %}
+<div class="columns is-mobile">
+  <div class="column is-offset-11">
+    <a class="button is-primary" onclick="openModal('card-write')">글 작성</a>
+  </div>
+</div>
+{% endif %}
 
 <div class="modal" id="card-write">
   <div class="modal-background"></div>
@@ -242,18 +338,25 @@
       <p class="modal-card-title">글 작성</p>
     </header>
     <section class="modal-card-body">
-
       <div class="field">
         <label class="label">카드글 작성</label>
         <div class="control">
-          <textarea class="textarea" placeholder="게시글 작성" id="card-content"></textarea>
+          <textarea
+            class="textarea"
+            placeholder="게시글 작성"
+            id="card-content"
+          ></textarea>
         </div>
       </div>
       <div class="field" id="cardWritebox">
         <div class="channel-info">
           <label class="label">Youtube channel URL</label>
           <div class="control has-icons-left has-icons-right">
-            <input class="input is-success" type="text" placeholder="https://www.youtube.com/~~~">
+            <input
+              class="input is-success"
+              type="text"
+              placeholder="https://www.youtube.com/~~~"
+            />
             <span class="icon is-small is-left">
               <i class="fa-brands fa-youtube"></i>
             </span>
@@ -288,15 +391,14 @@
   <div class='card-modal-container'></div>
   <!-- 3개씩 쌓이게 -->
   {% for card in cards %}
-    {% if loop.index % 4 == 1 %}
+    {% if loop.index %4 == 1 %}
       <div class="columns is-multiline">
     {% endif %}
-      {% with card_nickname=card['user_nickname'], like_count=card['like_count'], channels_info= card['channels_info'] %}
+      {% with mylike = mylike, nickname = nickname,card_nickname=card['user_nickname'], like_count=card['like_count'], channels_info= card['channels_info'] %}
         {% include 'card_templates.html' %}
       {% endwith %}
     {% if loop.index % 4 == 0 %}
       </div>
     {% endif %}
   {% endfor %}
-{% endblock %}
-
+{% endblock%}
