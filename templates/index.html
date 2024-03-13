@@ -1,121 +1,121 @@
 {% extends "layout.html" %} {% block javascriptfuction %}
 <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
 <script>
-  $(document).ready(function () {
-    document.querySelectorAll(".card-content").forEach((cardContent) => {
-      cardContent.addEventListener("click", function () {
-        insertCardmodalhtml(cardContent);
-        openModal("card-modal");
-      });
+  $(document).ready(function() {
+    document.querySelectorAll('.card-content').forEach((cardContent) => {
+      cardContent.addEventListener('click', function(event) {
+        if (!event.target.matches('button')) {
+            cardNickname = cardContent.querySelector('.title').childNodes[0].nodeValue.trim();
+            getCarddetail(cardNickname)
+        }
+    });
     });
 
-    document.addEventListener("click", function (event) {
-      var modal = document.querySelector(".modal.is-active");
-      if (modal && modal.contains(event.target)) {
-        $(".card-modal-container").empty();
-        modal.classList.remove("is-active");
-      }
-    });
+    document.addEventListener('click', function(event) {
+      var modal = document.querySelector('.modal.is-active');
+      if (modal && modal.contains(event.target) && event.target.classList.contains('modal-background')) {
+          $('.card-modal-container').empty();  
+          modal.classList.remove('is-active');
+    }
+  });
   });
 
-  function insertCardmodalhtml(cardContent) {
-    cardNickname = cardContent.querySelector(".title").textContent;
+  function getCarddetail(cardNickname){
+    $.ajax({
+      type: 'GET',
+      url: '/get',
+      data: {'card_nickname': cardNickname},
+      success: function(res){
+        if (res['result'] == 'success'){
+          insertCardmodalhtml(res['card_detail']);
+          openModal('card-modal');
+        } else {
+          alert(res['msg']);
+        }
+      } ,
+      error: function(xhr, status, error) {
+        alert("Error:");
+    }
+    })
+  }
 
-    var images = cardContent.querySelectorAll(".media-left img");
-    var urls = cardContent.querySelectorAll(".content a");
-    var titles = cardContent.querySelectorAll(".content strong");
-
-    var channelImageurls = [];
-    var channelUrls = [];
-    var channelTitles = [];
-
-    images.forEach((image) => {
-      channelImageurls.push(image.src);
-    });
-    urls.forEach((url) => {
-      channelUrls.push(url.href);
-    });
-    titles.forEach((title) => {
-      channelTitles.push(title.textContent);
-    });
-
+  function insertCardmodalhtml(cardDetail) {
     cardHtml = `<div class="modal is-half" id="card-modal">
           <div class="modal-background"></div>
           <div class="modal-card">
             <header class="modal-card-head">
               <p class="title">
-                ${cardNickname}
+                ${cardDetail['user_nickname']}
                 <span>
-                  <form action="/like_card/${cardNickname}" method="post">
-                    <button type="submit" class="emoji-button" value="like">❤️</button>
+                  <form action="/like_card/${cardDetail['user_nickname']}" method="post">
+                    <button type="submit" class="emoji-button" value="like">❤️${cardDetail["like_count"]}</button>
                   </form>
                 </span>
               </p>
             </header>
             <section class="modal-card-body">
             <p class="modal-cardcontent">
-              ${cardNickname}
+              ${cardDetail['card_content']}
             </p>
             <hr class="has-background-grey-lighter"/>
             <!--article 안에 왼쪽에 사진/ 우측에 그림 위치할 gird 작성-->
-            `;
-    for (let i = 0; i < channelImageurls.length; i++) {
-      cardHtml += `<div class="columns">
+            `
+
+    for (let i = 0; i < cardDetail['channels_info'].length; i++) {
+        cardHtml += `<div class="columns">
         <div class="column is-1-2">
           <!-- 왼쪽 컨텐츠 -->
           <div class="columns">
-            <div class="column is-half">
-              <!-- 왼쪽 상단 이미지 -->
-              <img src=${channelImageurls[i]} alt="Image 1" class="thumnail-image">
-            </div>
-            <div class="column is-half">
-              <!-- 오른쪽 상단 이미지 -->
-              <img src=${channelImageurls[i]} alt="Image 2" class="thumnail-image">
-            </div>
-          </div>
-          <div class="columns">
-            <div class="column is-half">
-              <!-- 왼쪽 하단 이미지 -->
-              <img src=${channelImageurls[i]} alt="Image 3" class="thumnail-image">
-            </div>
-            <div class="column is-half">
-              <!-- 오른쪽 하단 이미지 -->
-              <img src=${channelImageurls[i]} alt="Image 4" class="thumnail-image">
-            </div>
-          </div>
-        </div>
-        <div class="column">
-          <!-- 오른쪽 컨텐츠 -->
-          <article class="media">
-            <figure class="media-left">
-              <p class="image is-16x16">
-                <img src=${channelImageurls[i]} />
-              </p>
-            </figure>
-            <div class="media-content">
-              <div class="content">
-                <p><a href=${channelUrls[i]}><strong >${channelTitles[i]}</strong></a></p>
-              </div>
-            </div>
-            </article>
-            ${cardNickname}
-        </div>
-      </div>`;
+            
+              <!-- 왼쪽 상단 이미지 -->`
+        
+        for (let j = 0; j < Math.min(4, cardDetail['channels_info'][i]['thumbnails'].length); j++) {
+          cardHtml += `<div class="column is-half">
+                            <img src=${cardDetail['channels_info'][i]['thumbnails'][j]} alt="Image ${j+1}" class="thumbnail-image">
+                        </div>`;
+          if (j == 1){
+            cardHtml += `</div>
+                        <div class="columns">`;
+          }
+        }
+        cardHtml += `</div>
+                    </div>`;
 
-      if (i - 1 !== channelImageurls.length) {
-        cardHtml += `<hr class="has-background-grey-lighter"/>`;
-      }
+        cardHtml += `<div class="column">
+                    <!-- 오른쪽 컨텐츠 -->
+                    <article class="media">
+                      <figure class="media-left">
+                        <p class="image is-32x32">
+                          <img src=${cardDetail['channels_info'][i]['channel_image']} />
+                        </p>
+                      </figure>
+                      <div class="media-content">
+                        <div class="content">
+                          <p><a href=${cardDetail['channels_info'][i]['url_link']}><strong >${cardDetail['channels_info'][i]['channel_title']}</strong></a></p>
+                        </div>
+                      </div>
+                    </article>
+                    ${cardDetail['channels_info'][i]['youtuber_comment']}
+                  </div>
+                </div>`
+
+        if (i !== cardDetail['channels_info'].length - 1) {
+            cardHtml += `<hr class="has-background-grey-lighter"/>`;
+        }
     }
+
     cardHtml += `</div>            
                   </section>
                 </div>
               </div>`;
-    $(".card-modal-container").append(cardHtml);
+    $('.card-modal-container').append(cardHtml);
   }
 
+
+
   function openModal(modalId) {
-    var modal = document.getElementById(modalId);
-    modal.classList.add("is-active");
+      var modal = document.getElementById(modalId);
+      modal.classList.add('is-active');
   }
 
   function closeModal(modalId) {
@@ -159,11 +159,11 @@
     return youtubeChannelRegex.test(url);
   }
 
-  function validCheckandPOST() {
-    var fieldElement = document.getElementById("cardWritebox");
-    var inputElements = fieldElement.querySelectorAll("input");
-    var textareaElements = fieldElement.querySelectorAll("textarea");
-    var cardContent = $("#card-content").val();
+  function validCheckandPOST(nickname){
+    var fieldElement = document.getElementById('cardWritebox');
+    var inputElements = fieldElement.querySelectorAll('input');
+    var textareaElements = fieldElement.querySelectorAll('textarea');
+    var cardContent = $('#card-content').val();
 
     var channelUrls = [];
     inputElements.forEach((inputElement) => {
@@ -192,20 +192,15 @@
     if (channelUrls.length == youtuberComments.length) {
       closeModal("card-write");
       $.ajax({
-        type: "POST",
-        url: "/post",
-        data: {
-          user_nickname: nickname,
-          card_content: cardContent,
-          youtube_links: channelUrls,
-          youtuber_comments: youtuberComments,
-        },
-        success: function (res) {
-          if (res["result"] == "success") {
-            window.location.href = "/";
-            alert(res["msg"]);
-          } else {
-            alert(res["msg"]);
+        type:'POST',
+        url:'/post',
+        data:{'user_nickname': nickname, 'card_content': cardContent, 
+              'youtube_links': channelUrls, 'youtuber_comments':youtuberComments},
+        success: function(res){
+          if (res['result'] == 'success'){
+            window.location.href = '/';
+          } else{
+            alert(res['msg']);
           }
         },
         error: function (xhr, status, error) {
@@ -341,11 +336,6 @@ function unlikeCard(nickname, userNickname) {
   <div class="modal-card">
     <header class="modal-card-head">
       <p class="modal-card-title">글 작성</p>
-      <button
-        class="delete"
-        aria-label="close"
-        onclick="closeModal('card-write')"
-      ></button>
     </header>
     <section class="modal-card-body">
       <div class="field">
@@ -381,15 +371,6 @@ function unlikeCard(nickname, userNickname) {
         <button class="button is-success" onclick="addChannelinfo()">
           <span class="icon">
             <i class="fas fa-plus"></i>
-        <label class="label">Youtube channel URL</label>
-        <div class="control has-icons-left has-icons-right">
-          <input
-            class="input is-success"
-            type="text"
-            placeholder="https://www.youtube.com/~~~"
-          />
-          <span class="icon is-small is-left">
-            <i class="fa-brands fa-youtube"></i>
           </span>
         </button>
         <button class="button is-danger" onclick="deleteChannelinfo()">
@@ -401,9 +382,7 @@ function unlikeCard(nickname, userNickname) {
       <!-- Content ... -->
     </section>
     <footer class="modal-card-foot">
-      <button class="button is-success" onclick="validCheckandPOST()">
-        작성 완료
-      </button>
+      <button class="button is-success" onclick="validCheckandPOST('{{nickname}}')">작성 완료</button>
     </footer>
   </div>
 </div>

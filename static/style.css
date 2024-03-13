@@ -24,6 +24,10 @@
   width: 450px; 
 }
 
+.column.is-half {
+  padding: 0; /* 패딩을 0으로 설정하여 없앱니다. */
+}
+
 .emoji-button{
   float: right;
   background-color: transparent;
