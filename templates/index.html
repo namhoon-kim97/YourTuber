@@ -1,39 +1,43 @@
-{% extends "layout.html" %}
-{% block javascriptfuction %}
+{% extends "layout.html" %} {% block javascriptfuction %}
 <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
 <script>
-  $(document).ready(function() {
-    document.querySelectorAll('.card-content').forEach((cardContent) => {
-        cardContent.addEventListener('click', function() {
-          insertCardmodalhtml(cardContent);
-          openModal('card-modal');
-        });
+  $(document).ready(function () {
+    document.querySelectorAll(".card-content").forEach((cardContent) => {
+      cardContent.addEventListener("click", function () {
+        insertCardmodalhtml(cardContent);
+        openModal("card-modal");
+      });
     });
 
-    document.addEventListener('click', function(event) {
-        var modal = document.querySelector('.modal.is-active');
-        if (modal && modal.contains(event.target)) {
-          $('.card-modal-container').empty();  
-          modal.classList.remove('is-active');
-        }
+    document.addEventListener("click", function (event) {
+      var modal = document.querySelector(".modal.is-active");
+      if (modal && modal.contains(event.target)) {
+        $(".card-modal-container").empty();
+        modal.classList.remove("is-active");
+      }
     });
   });
 
-  function insertCardmodalhtml(cardContent){
+  function insertCardmodalhtml(cardContent) {
+    cardNickname = cardContent.querySelector(".title").textContent;
 
-    cardNickname = cardContent.querySelector('.title').textContent;
-
-    var images = cardContent.querySelectorAll('.media-left img');
-    var urls = cardContent.querySelectorAll('.content a');
-    var titles = cardContent.querySelectorAll('.content strong');
+    var images = cardContent.querySelectorAll(".media-left img");
+    var urls = cardContent.querySelectorAll(".content a");
+    var titles = cardContent.querySelectorAll(".content strong");
 
     var channelImageurls = [];
     var channelUrls = [];
     var channelTitles = [];
 
-    images.forEach(image => {channelImageurls.push(image.src); });
-    urls.forEach(url => {channelUrls.push(url.href); });
-    titles.forEach(title => {channelTitles.push(title.textContent); });
+    images.forEach((image) => {
+      channelImageurls.push(image.src);
+    });
+    urls.forEach((url) => {
+      channelUrls.push(url.href);
+    });
+    titles.forEach((title) => {
+      channelTitles.push(title.textContent);
+    });
 
     cardHtml = `<div class="modal is-half" id="card-modal">
           <div class="modal-background"></div>
@@ -54,8 +58,8 @@
             </p>
             <hr class="has-background-grey-lighter"/>
             <!--article 안에 왼쪽에 사진/ 우측에 그림 위치할 gird 작성-->
-            `
-    for(let i =0; i<channelImageurls.length; i++){
+            `;
+    for (let i = 0; i < channelImageurls.length; i++) {
       cardHtml += `<div class="columns">
         <div class="column is-1-2">
           <!-- 왼쪽 컨텐츠 -->
@@ -96,19 +100,18 @@
             </article>
             ${cardNickname}
         </div>
-      </div>`
-  
-      if (i-1 !== channelImageurls.length){ 
-      cardHtml += `<hr class="has-background-grey-lighter"/>`
+      </div>`;
+
+      if (i - 1 !== channelImageurls.length) {
+        cardHtml += `<hr class="has-background-grey-lighter"/>`;
       }
     }
-      cardHtml += `</div>            
+    cardHtml += `</div>            
                   </section>
                 </div>
               </div>`;
-      $('.card-modal-container').append(cardHtml);
+    $(".card-modal-container").append(cardHtml);
   }
-
 
   function openModal(modalId) {
     var modal = document.getElementById(modalId);
@@ -117,15 +120,14 @@
 
   function closeModal(modalId) {
     var modal = document.getElementById(modalId);
-    modal.classList.remove('is-active');
-
+    modal.classList.remove("is-active");
   }
 
-  function addChannelinfo(){
-    var fieldElement = document.getElementById('cardWritebox');
-    var inputElements = fieldElement.querySelectorAll('input');
-    if (inputElements.length <= 2){
-              $('#cardWritebox').append(`<div class="channel-info">
+  function addChannelinfo() {
+    var fieldElement = document.getElementById("cardWritebox");
+    var inputElements = fieldElement.querySelectorAll("input");
+    if (inputElements.length <= 2) {
+      $("#cardWritebox").append(`<div class="channel-info">
                 <label class="label">Youtube channel URL</label>
               <div class="control has-icons-left has-icons-right">
                 <input class="input is-success" type="text" placeholder="https://www.youtube.com/~~~">
@@ -138,82 +140,89 @@
                 <textarea class="textarea" placeholder="소개글 작성"></textarea>
               </div>
             </div>`);
-      }else{
-        alert("최대 3개까지 입력 가능합니다.");
-      }
+    } else {
+      alert("최대 3개까지 입력 가능합니다.");
+    }
   }
 
-  function deleteChannelinfo(){
-    var fieldElements = document.getElementsByClassName('channel-info');
-    if (fieldElements.length >= 2){
-      fieldElements[fieldElements.length-1].remove();
-      } else {
-        alert("최대 1개는 입력해야 합니다.");
-      }
+  function deleteChannelinfo() {
+    var fieldElements = document.getElementsByClassName("channel-info");
+    if (fieldElements.length >= 2) {
+      fieldElements[fieldElements.length - 1].remove();
+    } else {
+      alert("최대 1개는 입력해야 합니다.");
+    }
   }
 
-  function isValidChannelUrl(url){
+  function isValidChannelUrl(url) {
     const youtubeChannelRegex = /^https?:\/\/(www\.)?youtube\.com\/@[\w-]+$/;
     return youtubeChannelRegex.test(url);
   }
 
-  function validCheckandPOST(){
-    var fieldElement = document.getElementById('cardWritebox');
-    var inputElements = fieldElement.querySelectorAll('input');
-    var textareaElements = fieldElement.querySelectorAll('textarea');
-    var cardContent = $('#card-content').val();
+  function validCheckandPOST() {
+    var fieldElement = document.getElementById("cardWritebox");
+    var inputElements = fieldElement.querySelectorAll("input");
+    var textareaElements = fieldElement.querySelectorAll("textarea");
+    var cardContent = $("#card-content").val();
 
     var channelUrls = [];
-    inputElements.forEach(inputElement => {
+    inputElements.forEach((inputElement) => {
       var isValid = isValidChannelUrl(inputElement.value);
       var nextElement = inputElement.nextElementSibling;
       if (isValid) channelUrls.push(inputElement.value);
-      var message = isValid ? '이 URL은 가능합니다.' : '이 URL은 불가능합니다.';
-      var className = isValid ? 'is-success' : 'is-danger';
+      var message = isValid ? "이 URL은 가능합니다." : "이 URL은 불가능합니다.";
+      var className = isValid ? "is-success" : "is-danger";
 
-        if (nextElement && nextElement.tagName.toLowerCase() === 'p') {
-            nextElement.className = `help ${className}`;
-            nextElement.textContent = message;
-        } else {
-          var paragraphElement = document.createElement('p');
-            paragraphElement.classList.add('help', className);
-            paragraphElement.textContent = message;
-            inputElement.insertAdjacentElement('afterend', paragraphElement);
-        }
+      if (nextElement && nextElement.tagName.toLowerCase() === "p") {
+        nextElement.className = `help ${className}`;
+        nextElement.textContent = message;
+      } else {
+        var paragraphElement = document.createElement("p");
+        paragraphElement.classList.add("help", className);
+        paragraphElement.textContent = message;
+        inputElement.insertAdjacentElement("afterend", paragraphElement);
+      }
     });
 
     var youtuberComments = [];
-    textareaElements.forEach(inputElement => {
-      youtuberComments.push(inputElement.value); });
+    textareaElements.forEach((inputElement) => {
+      youtuberComments.push(inputElement.value);
+    });
 
-    if (channelUrls.length == youtuberComments.length){
-      closeModal('card-write');
+    if (channelUrls.length == youtuberComments.length) {
+      closeModal("card-write");
       $.ajax({
-        type:'POST',
-        url:'/post',
-        data:{'user_nickname': nickname, 'card_content': cardContent, 
-              'youtube_links': channelUrls, 'youtuber_comments':youtuberComments},
-        success: function(res){
-          if (res['result'] == 'success'){
-            window.location.href = '/';
-            alert(res['msg']);
-          } else{
-            alert(res['msg']);
+        type: "POST",
+        url: "/post",
+        data: {
+          user_nickname: nickname,
+          card_content: cardContent,
+          youtube_links: channelUrls,
+          youtuber_comments: youtuberComments,
+        },
+        success: function (res) {
+          if (res["result"] == "success") {
+            window.location.href = "/";
+            alert(res["msg"]);
+          } else {
+            alert(res["msg"]);
           }
-        } ,
-        error: function(xhr, status, error) {
+        },
+        error: function (xhr, status, error) {
           alert("Error:");
-      }
-      })
+        },
+      });
     } else {
-      alert('올바른 Youtube channel URL을 입력해 주세요.')
+      alert("올바른 Youtube channel URL을 입력해 주세요.");
     }
   }
 </script>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-{% endblock %}
-{% block login %}
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+/>
+{% endblock %} {% block login %}
 <div class="columns is-mobile">
   <div class="column is-offset-11">
     {% if nickname %}
@@ -227,15 +236,13 @@
     {% endif %}
   </div>
 </div>
-{% endblock %}
-{% block writecard %}
-  {% if nickname %}
-    <div class="columns is-mobile">
-      <div class="column is-offset-11">
-        <a class="button is-primary" onclick="openModal('card-write')">글 작성</a>
-      </div>
-    </div>
-  {% endif %}
+{% endblock %} {% block writecard %} {% if nickname %}
+<div class="columns is-mobile">
+  <div class="column is-offset-11">
+    <a class="button is-primary" onclick="openModal('card-write')">글 작성</a>
+  </div>
+</div>
+{% endif %}
 
 <div class="modal" id="card-write">
   <div class="modal-background"></div>
@@ -249,19 +256,25 @@
       ></button>
     </header>
     <section class="modal-card-body">
-
       <div class="field">
         <label class="label">카드글 작성</label>
         <div class="control">
-          <textarea class="textarea" placeholder="게시글 작성" id="card-content"></textarea>
+          <textarea
+            class="textarea"
+            placeholder="게시글 작성"
+            id="card-content"
+          ></textarea>
         </div>
-<<<<<<< HEAD
       </div>
       <div class="field" id="cardWritebox">
         <div class="channel-info">
           <label class="label">Youtube channel URL</label>
           <div class="control has-icons-left has-icons-right">
-            <input class="input is-success" type="text" placeholder="https://www.youtube.com/~~~">
+            <input
+              class="input is-success"
+              type="text"
+              placeholder="https://www.youtube.com/~~~"
+            />
             <span class="icon is-small is-left">
               <i class="fa-brands fa-youtube"></i>
             </span>
@@ -276,17 +289,6 @@
         <button class="button is-success" onclick="addChannelinfo()">
           <span class="icon">
             <i class="fas fa-plus"></i>
-=======
-        <label class="label">Youtube channel URL</label>
-        <div class="control has-icons-left has-icons-right">
-          <input
-            class="input is-success"
-            type="text"
-            placeholder="https://www.youtube.com/~~~"
-          />
-          <span class="icon is-small is-left">
-            <i class="fa-brands fa-youtube"></i>
->>>>>>> 285ba162727c681dee84d640846422d46f847b6c
           </span>
         </button>
         <button class="button is-danger" onclick="deleteChannelinfo()">
@@ -298,33 +300,19 @@
       <!-- Content ... -->
     </section>
     <footer class="modal-card-foot">
-      <button class="button is-success" onclick="validCheckandPOST()">작성 완료</button>
+      <button class="button is-success" onclick="validCheckandPOST()">
+        작성 완료
+      </button>
     </footer>
   </div>
 </div>
-<<<<<<< HEAD
-{% endblock%}
-{% block body %}
-  <div class='card-modal-container'></div>
-  <!-- 3개씩 쌓이게 -->
-  {% for card in cards %}
-    {% if loop.index % 4 == 1 %}
-      <div class="columns is-multiline">
-    {% endif %}
-      {% with card_nickname=card['user_nickname'], like_count=card['like_count'], channels_info= card['channels_info'] %}
-        {% include 'card_templates.html' %}
-      {% endwith %}
-    {% if loop.index % 4 == 0 %}
-      </div>
-    {% endif %}
-  {% endfor %}
-=======
 {% endblock%} {% block body %}
+<div class="card-modal-container"></div>
+<!-- 3개씩 쌓이게 -->
+{% for card in cards %} {% if loop.index % 4 == 1 %}
 <div class="columns is-multiline">
-  <!-- 쌓이게 -->
-  {% for card in cards %} {% with user_nickname=card['user_nickname'],
+  {% endif %} {% with card_nickname=card['user_nickname'],
   like_count=card['like_count'], channels_info= card['channels_info'] %} {%
-  include 'card_templates.html' %} {% endwith %} {% endfor %}
+  include 'card_templates.html' %} {% endwith %} {% if loop.index % 4 == 0 %}
 </div>
->>>>>>> 285ba162727c681dee84d640846422d46f847b6c
-{% endblock %}
+{% endif %} {% endfor %} {% endblock %}

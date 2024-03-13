@@ -2,12 +2,15 @@
 
 <div class="column is-3">
   <div class="card">
-    <div class="card-content" style="cursor: pointer;">
+    <div class="card-content" style="cursor: pointer">
       <!-- 카드 제목 -->
       <p class="title">
         {{card_nickname}}
         <span>
-          <form action="{{ url_for('like_card', user_nick=card_nickname) }}" method="post">
+          <form
+            action="{{ url_for('like_card', user_nick=card_nickname) }}"
+            method="post"
+          >
             <button type="submit" class="emoji-button" value="like">❤️</button>
           </form>
         </span>
@@ -15,20 +18,24 @@
       <hr class="has-background-grey-lighter" />
       <!-- 카드 내용  -->
       {% for channel in channels_info %}
-        <div class="subtitle">
-          <article class="media">
-            <figure class="media-left">
-              <p class="image is-64x64">
-                <img src="{{channel['channel_image']}}" />
+      <div class="subtitle">
+        <article class="media">
+          <figure class="media-left">
+            <p class="image is-64x64">
+              <img src="{{channel['channel_image']}}" />
+            </p>
+          </figure>
+          <div class="media-content">
+            <div class="content">
+              <p>
+                <a href="{{channel['url_info']}}"
+                  ><strong>{{channel['channel_title']}}</strong></a
+                >
               </p>
-            </figure>
-            <div class="media-content">
-              <div class="content">
-                <p><a href={{channel['url_link']}}><strong >{{channel['channel_title']}}</strong></a></p>
-              </div>
             </div>
-          </article>
-        </div>
+          </div>
+        </article>
+      </div>
       {% endfor %}
       <footer class="modal-card-foot">
         <div class="modal" id="card-correct">
@@ -41,10 +48,16 @@
             </footer>
           </div>
         </div>
-        <form action="{{ url_for('delete_card', user_nick=card_nickname) }}" method="post">
+        <form
+          action="{{ url_for('delete_card', user_nick=card_nickname) }}"
+          method="post"
+        >
           <button class="button is-success">✏️</button>
         </form>
-        <form action="{{ url_for('delete_card', user_nick=card_nickname) }}" method="post">
+        <form
+          action="{{ url_for('delete_card', user_nick=card_nickname) }}"
+          method="post"
+        >
           <button type="submit" class="emoji-button" value="Delete">❌</button>
         </form>
       </footer>
