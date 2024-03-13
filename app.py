@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-from flask import Flask, render_template, jsonify, request, redirect, url_for, make_response
-=======
 from flask import (
     Flask,
     make_response,
@@ -10,11 +7,10 @@ from flask import (
     redirect,
     url_for,
 )
->>>>>>> 285ba162727c681dee84d640846422d46f847b6c
 import requests
 from bs4 import BeautifulSoup
 from pymongo import MongoClient
-import jwt, datetime, hashlib, json
+import jwt, datetime, hashlib
 
 app = Flask(__name__)
 SECRET_KEY = "namhoon"
@@ -68,11 +64,7 @@ def api_login():
         payload = {
             "id": id_receive,
             "exp": datetime.datetime.now(datetime.timezone.utc)
-<<<<<<< HEAD
-            + datetime.timedelta(seconds=5000),
-=======
             + datetime.timedelta(seconds=500),
->>>>>>> 285ba162727c681dee84d640846422d46f847b6c
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
@@ -87,14 +79,6 @@ def api_login():
 def login():
     return render_template("login.html")
 
-@app.route("/logout", methods=["GET"])
-def logout():
-    token_receive = request.cookies.get("mytoken")
-
-    # 쿠키 삭제를 위해 빈 문자열과 만료일을 설정하여 쿠키를 덮어씁니다.
-    response = make_response(render_template("index.html"))
-    response.set_cookie("mytoken", "", expires=0)
-    return render_template("login.html")
 
 @app.route("/logout")
 def logout():
@@ -107,19 +91,14 @@ def logout():
 @app.route("/")
 def home():
     token_receive = request.cookies.get("mytoken")
-    # channels_info : list(dict)
-    # cards : list(dict(channels_info, str, str, int))
-    unsorted_cards = list(db.card.find({}, {'_id':False}))
-    cards = sorted(unsorted_cards, reverse=True, key=lambda x: x['like_count'])
-
     try:
         payload = jwt.decode(token_receive, SECRET_KEY, algorithms=["HS256"])
         user_info = db.user.find_one({"id": payload["id"]})
-        nickname=user_info["nickname"]
-    except :
-        nickname=None
-        
-    return render_template("index.html", nickname=nickname, cards=cards)
+        return render_template("index.html", nickname=user_info["nickname"])
+    except jwt.ExpiredSignatureError:
+        return redirect(url_for("login", msg="로그인 시간이 만료되었습니다."))
+    except jwt.exceptions.DecodeError:
+        return redirect(url_for("login", msg="로그인 정보가 존재하지 않습니다."))
 
 
 @app.route("/post", methods=["POST"])
@@ -127,10 +106,10 @@ def post_card():
     # 1. user로 부터 데이터를 받기
     user_nickname = request.form["user_nickname"]
     card_content = request.form["card_content"]
-    youtube_links = request.form.getlist("youtube_links[]")
-    youtuber_comments = request.form.getlist("youtuber_comments[]")
+    youtube_links = request.form["youtube_links"]
+    youtuber_comments = request.form["youtuber_comments"]
+
     channels_info = []
-    
     # 2. meta tag를 스크래핑하기
     for url_link, youtuber_comment in zip(youtube_links, youtuber_comments):
         headers = {
@@ -141,8 +120,7 @@ def post_card():
 
         og_image = soup.select_one('meta[property="og:image"]')
         og_title = soup.select_one('meta[property="og:title"]')
-        if not og_image: return jsonify({"result": "fail", "msg": "유효하지 않은 Youtube channel 입니다."})
-        
+
         channels_info.append(
             {
                 "url_link": url_link,
@@ -158,27 +136,22 @@ def post_card():
         "card_content": card_content,
         "like_count": 0,
     }
+
     # 3. mongoDB에 데이터를 넣기
     db.card.insert_one(card)
-    return jsonify({"result": "success", "msg": "카드 작성 완료!"})
+
+    return jsonify({"result": "success"})
 
 
 @app.route("/delete_card/<user_nick>", methods=["POST"])
 def delete_card(user_nick):
     db.card.delete_one({"user_nick": user_nick})
-<<<<<<< HEAD
-    return redirect(url_for('home'))
-=======
     return redirect(url_for("main"))
 
->>>>>>> 285ba162727c681dee84d640846422d46f847b6c
 
 @app.route("/like_card/<user_nick>", methods=["POST"])
 def like_card(user_nick):
     db.card.update_one({"user_nick": user_nick}, {"$inc": {"count": 1}})
-<<<<<<< HEAD
-    return redirect(url_for('home'))
-=======
     return redirect(url_for("main"))
 
 
@@ -219,7 +192,6 @@ def check_email():
     else:
         return jsonify({"exists": False, "message": "사용 가능한 이메일입니다."})
 
->>>>>>> 285ba162727c681dee84d640846422d46f847b6c
 
 if __name__ == "__main__":
     app.run("0.0.0.0", port=5000, debug=True)
