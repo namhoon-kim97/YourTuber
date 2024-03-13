@@ -1,50 +1,19 @@
-<!-- card_templates.html -->
-<script>
-  $(document).ready(function () {
-    document.querySelectorAll(".card-content").forEach((cardContent) => {
-      cardContent.addEventListener("click", function (event) {
-        if (!event.target.matches("button")) {
-          insertCardmodalhtml(cardContent);
-          openModal("card-modal");
-        }
-      });
-    });
-  });
-
-  document.addEventListener("click", function (event) {
-    var modal = document.querySelector(".modal.is-active");
-    if (
-      modal &&
-      modal.contains(event.target) &&
-      event.target.classList.contains("modal-background")
-    ) {
-      closeModal();
-    }
-  });
-
-  function closeModal() {
-    $(".card-modal-container").empty();
-    $(".modal.is-active").removeClass("is-active");
-  }
-
-  $(document).on("click", ".delete", function () {
-    closeModal();
-  });
-
-  function insertCardmodalhtml(cardContent) {}
-</script>
-
 <div class="column is-3">
   <div class="card">
-    <div class="card-content" style="padding-bottom: 10px; cursor: pointer">
+    <div
+      class="card-content"
+      style="padding-bottom: 10px; cursor: pointer"
+      data-nickname="{{ nickname }}"
+      data-cardnickname="{{card_nickname}}"
+    >
       <!-- 카드 제목 -->
       <!-- like unlike 모아둠  -->
 
-      {%if user_nickname in my_like%}
+      {%if card.is_liked_by_user%}
       <button
         type="submit"
         class="emoji-button"
-        onclick="unlikeCard('{{ nickname }}', '{{ user_nickname }}')"
+        onclick="unlikeCard('{{ nickname }}', '{{ card_nickname }}')"
       >
         🩷<span style="font-size: 20px"> {{like_count}} </span>
       </button>
@@ -52,7 +21,7 @@
       <button
         type="submit"
         class="emoji-button"
-        onclick="likeCard('{{ nickname }}', '{{ user_nickname }}')"
+        onclick="likeCard('{{ nickname }}', '{{ card_nickname }}')"
       >
         🤍<span style="font-size: 20px"> {{like_count}} </span>
       </button>
@@ -61,8 +30,7 @@
       <!-- like unlike 여기까지 -->
 
       <p class="title">
-        {{card_nickname}}
-        <span style="font-size: 0.8em">{{user_nickname}} </span>
+        <span style="font-size: 0.8em">{{card_nickname}} </span>
       </p>
       <hr class="has-background-grey-lighter" />
       <!-- 카드 내용  -->
@@ -162,6 +130,7 @@
               >
                 수정 완료
               </button>
+              <div id="statusMessage" style="display: none"></div>
               <button
                 id="cancelEditButton"
                 class="button"

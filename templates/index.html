@@ -1,121 +1,138 @@
 {% extends "layout.html" %} {% block javascriptfuction %}
 <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
 <script>
-  $(document).ready(function() {
-    document.querySelectorAll('.card-content').forEach((cardContent) => {
-      cardContent.addEventListener('click', function(event) {
-        if (!event.target.matches('button')) {
-            cardNickname = cardContent.querySelector('.title').childNodes[0].nodeValue.trim();
-            getCarddetail(cardNickname)
+  $(document).ready(function () {
+    document.querySelectorAll(".card-content").forEach((cardContent) => {
+      cardContent.addEventListener("click", function (event) {
+        if (!event.target.matches("button")) {
+          const userNickname = cardContent.getAttribute("data-nickname");
+          const cardNickname = cardContent.getAttribute("data-cardnickname");
+          getCarddetail(cardNickname, userNickname);
         }
-    });
+      });
     });
 
-    document.addEventListener('click', function(event) {
-      var modal = document.querySelector('.modal.is-active');
-      if (modal && modal.contains(event.target) && event.target.classList.contains('modal-background')) {
-          $('.card-modal-container').empty();  
-          modal.classList.remove('is-active');
-    }
-  });
+    document.addEventListener("click", function (event) {
+      var modal = document.querySelector(".modal.is-active");
+      if (
+        modal &&
+        modal.contains(event.target) &&
+        event.target.classList.contains("modal-background")
+      ) {
+        $(".card-modal-container").empty();
+        modal.classList.remove("is-active");
+      }
+    });
   });
 
-  function getCarddetail(cardNickname){
+  function getCarddetail(cardNickname, userNickname) {
+    let formData = {
+      card_nickname: cardNickname,
+      user_nickname: userNickname,
+    };
     $.ajax({
-      type: 'GET',
-      url: '/get',
-      data: {'card_nickname': cardNickname},
-      success: function(res){
-        if (res['result'] == 'success'){
-          insertCardmodalhtml(res['card_detail']);
-          openModal('card-modal');
+      type: "GET",
+      url: "/get",
+      data: formData, // JSON.stringify를 제거하고 객체를 직접 전달
+      // contentType 설정을 제거함. GET 요청에는 필요 없음
+      dataType: "json",
+      success: function (res) {
+        if (res["result"] == "success") {
+          insertCardmodalhtml(res["card_detail"], userNickname);
+          openModal("card-modal");
         } else {
-          alert(res['msg']);
+          alert(res["msg"]);
         }
-      } ,
-      error: function(xhr, status, error) {
-        alert("Error:");
-    }
-    })
+      },
+      error: function (xhr, status, error) {
+        alert("Error: " + error);
+      },
+    });
   }
 
-  function insertCardmodalhtml(cardDetail) {
+
+  function insertCardmodalhtml(cardDetail, userNickname) {
     cardHtml = `<div class="modal is-half" id="card-modal">
           <div class="modal-background"></div>
           <div class="modal-card">
-            <header class="modal-card-head">
+            <header class="modal-card-head" style="display: flex; justify-content: space-between; align-items: center;">
               <p class="title">
-                ${cardDetail['user_nickname']}
-                <span>
-                  <form action="/like_card/${cardDetail['user_nickname']}" method="post">
-                    <button type="submit" class="emoji-button" value="like">❤️${cardDetail["like_count"]}</button>
-                  </form>
-                </span>
+                ${cardDetail["user_nickname"]}
               </p>
+              <span style="font-size: 35px"> 
+                <button type="submit" class="emoji-button" onclick="${cardDetail['is_liked_by_user'] ? `unlikeCard('${userNickname}', '${cardDetail["user_nickname"]}');` : `likeCard('${userNickname}', '${cardDetail["user_nickname"]}');`}">
+                    ${cardDetail['is_liked_by_user'] ? '🩷' : '🤍'}
+                    ${cardDetail["like_count"]}
+                </button>
+              </span>
             </header>
             <section class="modal-card-body">
             <p class="modal-cardcontent">
-              ${cardDetail['card_content']}
+              ${cardDetail["card_content"]}
             </p>
             <hr class="has-background-grey-lighter"/>
             <!--article 안에 왼쪽에 사진/ 우측에 그림 위치할 gird 작성-->
-            `
+            `;
 
-    for (let i = 0; i < cardDetail['channels_info'].length; i++) {
-        cardHtml += `<div class="columns">
+    for (let i = 0; i < cardDetail["channels_info"].length; i++) {
+      cardHtml += `<div class="columns">
         <div class="column is-1-2">
           <!-- 왼쪽 컨텐츠 -->
           <div class="columns">
             
-              <!-- 왼쪽 상단 이미지 -->`
-        
-        for (let j = 0; j < Math.min(4, cardDetail['channels_info'][i]['thumbnails'].length); j++) {
-          cardHtml += `<div class="column is-half">
-                            <img src=${cardDetail['channels_info'][i]['thumbnails'][j]} alt="Image ${j+1}" class="thumbnail-image">
+              <!-- 왼쪽 상단 이미지 -->`;
+
+      for (
+        let j = 0;
+        j < Math.min(4, cardDetail["channels_info"][i]["thumbnails"].length);
+        j++
+      ) {
+        cardHtml += `<div class="column is-half">
+                            <img src=${
+                              cardDetail["channels_info"][i]["thumbnails"][j]
+                            } alt="Image ${j + 1}" class="thumbnail-image">
                         </div>`;
-          if (j == 1){
-            cardHtml += `</div>
+        if (j == 1) {
+          cardHtml += `</div>
                         <div class="columns">`;
-          }
         }
-        cardHtml += `</div>
+      }
+      cardHtml += `</div>
                     </div>`;
 
-        cardHtml += `<div class="column">
+      cardHtml += `<div class="column">
                     <!-- 오른쪽 컨텐츠 -->
                     <article class="media">
                       <figure class="media-left">
                         <p class="image is-32x32">
-                          <img src=${cardDetail['channels_info'][i]['channel_image']} />
+                          <img src=${cardDetail["channels_info"][i]["channel_image"]} />
                         </p>
                       </figure>
                       <div class="media-content">
                         <div class="content">
-                          <p><a href=${cardDetail['channels_info'][i]['url_link']}><strong >${cardDetail['channels_info'][i]['channel_title']}</strong></a></p>
+                          <p><a href=${cardDetail["channels_info"][i]["url_link"]}><strong >${cardDetail["channels_info"][i]["channel_title"]}</strong></a></p>
                         </div>
                       </div>
                     </article>
-                    ${cardDetail['channels_info'][i]['youtuber_comment']}
+                    ${cardDetail["channels_info"][i]["youtuber_comment"]}
                   </div>
-                </div>`
+                </div>`;
 
-        if (i !== cardDetail['channels_info'].length - 1) {
-            cardHtml += `<hr class="has-background-grey-lighter"/>`;
-        }
+      if (i !== cardDetail["channels_info"].length - 1) {
+        cardHtml += `<hr class="has-background-grey-lighter"/>`;
+      }
     }
 
     cardHtml += `</div>            
                   </section>
                 </div>
               </div>`;
-    $('.card-modal-container').append(cardHtml);
+    $(".card-modal-container").append(cardHtml);
   }
 
-
-
   function openModal(modalId) {
-      var modal = document.getElementById(modalId);
-      modal.classList.add('is-active');
+    var modal = document.getElementById(modalId);
+    modal.classList.add("is-active");
   }
 
   function closeModal(modalId) {
@@ -159,11 +176,11 @@
     return youtubeChannelRegex.test(url);
   }
 
-  function validCheckandPOST(nickname){
-    var fieldElement = document.getElementById('cardWritebox');
-    var inputElements = fieldElement.querySelectorAll('input');
-    var textareaElements = fieldElement.querySelectorAll('textarea');
-    var cardContent = $('#card-content').val();
+  function validCheckandPOST(nickname) {
+    var fieldElement = document.getElementById("cardWritebox");
+    var inputElements = fieldElement.querySelectorAll("input");
+    var textareaElements = fieldElement.querySelectorAll("textarea");
+    var cardContent = $("#card-content").val();
 
     var channelUrls = [];
     inputElements.forEach((inputElement) => {
@@ -192,15 +209,19 @@
     if (channelUrls.length == youtuberComments.length) {
       closeModal("card-write");
       $.ajax({
-        type:'POST',
-        url:'/post',
-        data:{'user_nickname': nickname, 'card_content': cardContent, 
-              'youtube_links': channelUrls, 'youtuber_comments':youtuberComments},
-        success: function(res){
-          if (res['result'] == 'success'){
-            window.location.href = '/';
-          } else{
-            alert(res['msg']);
+        type: "POST",
+        url: "/post",
+        data: {
+          user_nickname: nickname,
+          card_content: cardContent,
+          youtube_links: channelUrls,
+          youtuber_comments: youtuberComments,
+        },
+        success: function (res) {
+          if (res["result"] == "success") {
+            window.location.href = "/";
+          } else {
+            alert(res["msg"]);
           }
         },
         error: function (xhr, status, error) {
@@ -212,30 +233,36 @@
     }
   }
 
-
-function opencorrectModal(modalId, nickname) {
-  var modal = document.getElementById(modalId);
-  modal.classList.add("is-active");
-  $.ajax({
-    type: "POST",
-    url: "/card/load",
-    data: { nickname: nickname },
-    success: function (response) {
-      if (response["result"] == "success") {
-        var modal = document.getElementById(modalId);
-        modal.classList.add("is-active");
-      } else {
-        alert("서버 오류!");
-      }
-    },
-  });
-}
+  function opencorrectModal(modalId, nickname) {
+    var modal = document.getElementById(modalId);
+    modal.classList.add("is-active");
+    $.ajax({
+      type: "POST",
+      url: "/card/load",
+      data: { nickname: nickname },
+      success: function (response) {
+        if (response["result"] == "success") {
+          let card = response.corrCard;
+          // 카드 정보를 가져와서 수정 폼에 채우기
+          // for돌려서 card.title.length만큼
+          //
+          $("#card-title").val(card.title);
+          $("#youtube-url").val(card.youtube_url);
+          $("#channel-description").val(card.description);
+          // 수정 모달 열기
+          var modal = document.getElementById(modalId);
+          modal.classList.add("is-active");
+        } else {
+          alert("서버 오류!");
+        }
+      },
+    });
+  }
 
 function correctCard(user_nickname) {
   var fieldElement = document.getElementById("cardCorrectbox");
     var inputElements = fieldElement.querySelectorAll("input");
     var textareaElements = fieldElement.querySelectorAll("textarea");
-    console.log(inputElements,textareaElements);
 
     var cardContent = $("#correct-content").val();
     var channelUrls = [];
@@ -292,45 +319,45 @@ function correctCard(user_nickname) {
 
 }
 
-function likeCard(nickname, userNickname) {
-  $.ajax({
-    type: "POST",
-    url: "/card/like",
-    data: { nickname: nickname, user_nickname: userNickname },
-    success: function (response) {
-      if (response.result === "success") {
-        alert(response.msg);
-        location.reload();
-      } else {
+  function likeCard(nickname, card_nickname) {
+    $.ajax({
+      type: "POST",
+      url: "/card/like",
+      data: { nickname: nickname, card_nickname: card_nickname },
+      success: function (response) {
+        if (response.result === "success") {
+          alert(response.msg);
+          location.reload();
+        } else {
+          alert(response.msg);
+        }
+      },
+      error: function (xhr, status, error) {
         alert("서버 오류!");
-      }
-    },
-    error: function (xhr, status, error) {
-      alert("서버 오류!");
-      console.error(error);
-    },
-  });
-}
+        console.error(error);
+      },
+    });
+  }
 
-function unlikeCard(nickname, userNickname) {
-  $.ajax({
-    type: "POST",
-    url: "/card/unlike",
-    data: { nickname: nickname, user_nickname: userNickname },
-    success: function (response) {
-      if (response.result === "success") {
-        alert(response.msg);
-        location.reload();
-      } else {
+  function unlikeCard(nickname, card_nickname) {
+    $.ajax({
+      type: "POST",
+      url: "/card/unlike",
+      data: { nickname: nickname, card_nickname: card_nickname },
+      success: function (response) {
+        if (response.result === "success") {
+          alert(response.msg);
+          location.reload();
+        } else {
+          alert(response.msg);
+        }
+      },
+      error: function (xhr, status, error) {
         alert("서버 오류!");
-      }
-    },
-    error: function (xhr, status, error) {
-      alert("서버 오류!");
-      console.error(error);
-    },
-  });
-}
+        console.error(error);
+      },
+    });
+  }
 </script>
 
 <link
@@ -409,23 +436,23 @@ function unlikeCard(nickname, userNickname) {
       <!-- Content ... -->
     </section>
     <footer class="modal-card-foot">
-      <button class="button is-success" onclick="validCheckandPOST('{{nickname}}')">작성 완료</button>
+      <button
+        class="button is-success"
+        onclick="validCheckandPOST('{{nickname}}')"
+      >
+        작성 완료
+      </button>
     </footer>
   </div>
 </div>
-{% endblock%}
-{% block body %}
-  <div class='card-modal-container'></div>
-  <!-- 3개씩 쌓이게 -->
-  {% for card in cards %}
-    {% if loop.index %4 == 1 %}
-      <div class="columns is-multiline">
-    {% endif %}
-      {% with  nickname = nickname, card_nickname=card['user_nickname'], card=card,channels_info= card['channels_info'] %}
-        {% include 'card_templates.html' %}
-      {% endwith %}
-    {% if loop.index % 4 == 0 %}
-      </div>
-    {% endif %}
-  {% endfor %}
-{% endblock%}
+{% endblock%} {% block body %}
+<div class="card-modal-container"></div>
+<!-- 3개씩 쌓이게 -->
+{% for card in cards %} {% if loop.index %4 == 1 %}
+<div class="columns is-multiline">
+  {% endif %} {% with mylike = mylike, card = card, nickname =
+  nickname,card_nickname=card['user_nickname'], like_count=card['like_count'],
+  channels_info= card['channels_info'] %} {% include 'card_templates.html' %} {%
+  endwith %} {% if loop.index % 4 == 0 %}
+</div>
+{% endif %} {% endfor %} {% endblock%}
