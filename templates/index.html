@@ -415,7 +415,7 @@ function unlikeCard(nickname, userNickname) {
     {% if loop.index %4 == 1 %}
       <div class="columns is-multiline">
     {% endif %}
-      {% with card_nickname=card['user_nickname'], like_count=card['like_count'], channels_info= card['channels_info'] %}
+      {% with mylike = mylike, nickname = nickname,card_nickname=card['user_nickname'], like_count=card['like_count'], channels_info= card['channels_info'] %}
         {% include 'card_templates.html' %}
       {% endwith %}
     {% if loop.index % 4 == 0 %}

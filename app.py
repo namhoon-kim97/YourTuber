@@ -111,7 +111,7 @@ def home():
         nickname = user_info['nickname']
     except:
         nickname = None
-        my_like = None
+        my_like = []
         user_info = None
 
     return render_template("index.html", cards=cards, my_like=my_like, user_info=user_info, nickname=nickname)
