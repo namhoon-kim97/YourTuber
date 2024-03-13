@@ -5,10 +5,10 @@
     document.querySelectorAll(".card-content").forEach((cardContent) => {
       cardContent.addEventListener("click", function (event) {
         if (!event.target.matches("button")) {
-          cardNickname = cardContent
-            .querySelector(".title")
-            .childNodes[0].nodeValue.trim();
-          getCarddetail(cardNickname);
+          const userNickname = cardContent.getAttribute("data-nickname");
+          const cardNickname = cardContent.getAttribute("data-cardnickname");
+          console.log(userNickname, cardContent);
+          getCarddetail(cardNickname, userNickname);
         }
       });
     });
@@ -26,14 +26,19 @@
     });
   });
 
-  function getCarddetail(cardNickname) {
+  function getCarddetail(cardNickname, userNickname) {
+    let formData = {
+      card_nickname: cardNickname,
+    };
     $.ajax({
-      type: "GET",
+      type: "POST",
       url: "/get",
-      data: { card_nickname: cardNickname },
+      data: JSON.stringify(formData),
+      contentType: "application/json",
+      dataType: "json",
       success: function (res) {
         if (res["result"] == "success") {
-          insertCardmodalhtml(res["card_detail"]);
+          insertCardmodalhtml(res["card_detail"], userNickname);
           openModal("card-modal");
         } else {
           alert(res["msg"]);
@@ -45,17 +50,17 @@
     });
   }
 
-  function insertCardmodalhtml(cardDetail) {
+  function insertCardmodalhtml(cardDetail, userNickname) {
     cardHtml = `<div class="modal is-half" id="card-modal">
           <div class="modal-background"></div>
           <div class="modal-card">
             <header class="modal-card-head">
               <p class="title">
-                ${cardNickname}
+                ${cardDetail["user_nickname"]}
             <div style="display: flex; justify-content: flex-end;">
               <span>
-                <button type="submit" class="emoji-button" onclick="likeCard('${userNickname}', '${cardNickname}')">
-                  ${lick_count}
+                <button type="submit" class="emoji-button" onclick="likeCard('${userNickname}', '${cardDetail["user_nickname"]}')">
+                  ${cardDetail["like_count"]}
                 </button>
               </span>
             </div>

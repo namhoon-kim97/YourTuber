@@ -16,6 +16,8 @@ from pymongo import MongoClient
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 app = Flask(__name__)
 SECRET_KEY = "namhoon"
@@ -153,28 +155,20 @@ def home():
 
 
 
-@app.route("/get", methods=["GET"])
+@app.route("/get", methods=["POST"])
 def get_card_detail():
-    card_nickname= request.args.get('card_nickname')
+    data = request.get_json()
+    card_nickname = data["card_nickname"]
+    
     card_detail = db.card.find_one({"user_nickname" : card_nickname}, {'_id':False})
     return jsonify({"result": "success", "msg": "카드정보 및 썸네일 전송 완료!", "card_detail": card_detail})
-
-
-
-
-@app.route("/get", methods=["GET"])
-def get_card_detail():
-    card_nickname= request.args.get('card_nickname')
-    card_detail = db.card.find_one({"user_nickname" : card_nickname}, {'_id':False})
-    return jsonify({"result": "success", "msg": "카드정보 및 썸네일 전송 완료!", "card_detail": card_detail})
-
 
 
 @app.route("/post", methods=["POST"])
 def post_card():
     # 1. user로 부터 데이터를 받기
     user_nickname = request.form["user_nickname"]
-    if db.card.find_one({'user_nickname' : card['user_nickname']}):
+    if db.card.find_one({'user_nickname' : user_nickname}):
         return jsonify({"result": "fail", "msg": "이미 저장된 카드가 있습니다!"})
      
     card_content = request.form["card_content"]
@@ -195,7 +189,9 @@ def post_card():
         if not og_image: return jsonify({"result": "fail", "msg": "유효하지 않은 Youtube channel 입니다."})
         
         driver = webdriver.Chrome(options=chrome_options)
-        driver.implicitly_wait(3)
+        driver.implicitly_wait(7)
+        #WebDriverWait(driver, 10).until(
+        #EC.presence_of_element_located((By.CSS_SELECTOR, 'img.yt-core-image')))
         
         driver.get(url_link)
         thumbnail_elements= driver.find_elements(By.CSS_SELECTOR, 'img.yt-core-image')
@@ -204,6 +200,7 @@ def post_card():
             if thumbnail.get_attribute('src'):
                 thumbnails.append(thumbnail.get_attribute('src'))
             if len(thumbnails) >= 4: break
+        print(thumbnails)
         
         channels_info.append(
             {   
