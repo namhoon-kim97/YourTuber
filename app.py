@@ -1,3 +1,4 @@
+import time
 import jwt, datetime, hashlib
 import requests
 
@@ -16,8 +17,6 @@ from pymongo import MongoClient
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 
 app = Flask(__name__)
 SECRET_KEY = "namhoon"
@@ -188,20 +187,29 @@ def post_card():
         og_title = soup.select_one('meta[property="og:title"]')
         if not og_image: return jsonify({"result": "fail", "msg": "유효하지 않은 Youtube channel 입니다."})
         
-        driver = webdriver.Chrome(options=chrome_options)
-        driver.implicitly_wait(7)
-        #WebDriverWait(driver, 10).until(
-        #EC.presence_of_element_located((By.CSS_SELECTOR, 'img.yt-core-image')))
-        
+        driver = webdriver.Chrome()
         driver.get(url_link)
-        thumbnail_elements= driver.find_elements(By.CSS_SELECTOR, 'img.yt-core-image')
+        SCROLL_PAUSE_TIME = 3
+        # Get scroll height
+        last_height = driver.execute_script("return document.documentElement.scrollHeight")
+        while True:
+            # Scroll down to bottom
+            driver.execute_script("window.scrollTo(0, arguments[0]);", last_height)
+            # Wait to load page
+            time.sleep(SCROLL_PAUSE_TIME)
+            # Calculate new scroll height and compare with last scroll height
+            new_height = driver.execute_script("return document.documentElement.scrollHeight")
+            if new_height == last_height:
+                break
+            last_height = new_height
+            
         thumbnails = []
-        for thumbnail in thumbnail_elements:
-            if thumbnail.get_attribute('src'):
-                thumbnails.append(thumbnail.get_attribute('src'))
+        images = driver.find_elements(By.CSS_SELECTOR, 'img.yt-core-image')
+        for image in images:
+            if image.get_attribute('src'):
+                thumbnails.append(image.get_attribute('src'))
             if len(thumbnails) >= 4: break
-        print(thumbnails)
-        
+        driver.quit()
         channels_info.append(
             {   
                 "thumbnails": thumbnails,
