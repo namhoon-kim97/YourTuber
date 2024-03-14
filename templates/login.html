@@ -1,111 +1,149 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login Page with Bulma</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
-    <link rel='stylesheet' type='text/css' href="{{url_for('static', filename='style.css')}}">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{{url_for('static', filename='style.css')}}"
+    />
     <style>
-        .custom-btn{
-            font-size: 20px; /* 폰트 크기 조정 */
-            padding: 20px 20px; /* 상하, 좌우 패딩 조정 */
-        }
+      .custom-btn {
+        font-size: 20px; /* 폰트 크기 조정 */
+        padding: 20px 20px; /* 상하, 좌우 패딩 조정 */
+      }
     </style>
 
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"
-    integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
-    integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
-    crossorigin="anonymous"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"
+      integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+      integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
+      crossorigin="anonymous"
+    ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
 
     <script>
-        function login(){
-            let formData = {
-                userId: $('#userId').val(),
-                password: $('#password').val()
-            };
-            $.ajax({
-                type: "POST",
-                url: "/api/login",
-                data: JSON.stringify(formData),
-                contentType: "application/json",
-                dataType: "json",
-                success: function(response) {
-                    if (response.result === "success") {
-                        $.cookie('mytoken', response['token']);
-                        alert('로그인 완료!')
-                        window.location.href = "/"; // 로그인 성공 시 토큰 발행 후 메인 페이지로 리다이렉트
-                    } else {
-                        alert(response.msg); // 로그인 실패 시 메시지 표시
-                    }
-                },
-                error: function(xhr, status, error) {
-                    alert("Error:");
-                }
-            });
-        }
+      function login() {
+        let formData = {
+          userId: $("#userId").val(),
+          password: $("#password").val(),
+        };
+        $.ajax({
+          type: "POST",
+          url: "/api/login",
+          data: JSON.stringify(formData),
+          contentType: "application/json",
+          dataType: "json",
+          success: function (response) {
+            if (response.result === "success") {
+              $.cookie("mytoken", response["token"]);
+              alert("로그인 완료!");
+              window.location.href = "/"; // 로그인 성공 시 토큰 발행 후 메인 페이지로 리다이렉트
+            } else {
+              alert(response.msg); // 로그인 실패 시 메시지 표시
+            }
+          },
+          error: function (xhr, status, error) {
+            alert("Error:");
+          },
+        });
+      }
     </script>
-</head>
-<body>
+  </head>
+  <body>
     <section class="section">
-        <!-- upper menu -->
-        <div class="columns is-mobile">
-            <div class="column is-offset-11">
-                <button class="button is-success" onclick="location.href='/'">메인페이지</button>
-                <!-- 로그인 상태면 userNickname보이게 -->
-            </div>
-            </div>
-            <div class="columns is-mobile">
-                <div class="column is-4 is-offset-4" id="logo">
-                    <!-- 여기에 로고 -->logo
-                </div>
-            </div>
-            <div class="column is-1 is-offset-10">
-            </div>
+      <!-- upper menu -->
+      <div class="columns is-mobile">
+        <div
+          class="is-offset-10 is-flex"
+          style="align-items: center; width: 100%"
+        >
+          <div style="flex-grow: 1; display: flex; justify-content: center">
+            <a href="/" style="margin-left: 100px">
+              <img
+                src="../static/logo.png"
+                alt="대체 텍스트"
+                style="width: 180px; height: 70px"
+              />
+            </a>
+          </div>
+          <button
+            class="button is-success"
+            onclick="location.href='/'"
+            style="align-self: flex-end"
+          >
+            메인페이지
+          </button>
         </div>
+      </div>
 
-            <hr class="has-background-grey-light" />
+      <hr class="has-background-grey-light" />
 
-        <div class="columns is-centered">
-            <div class="column is-5-tablet is-4-desktop is-3-widescreen">
-                <form action="" class="box">
-                    <div class="field">
-                        <label for="userId" class="label">Email</label>
-                        <div class="control has-icons-left">
-                            <input id="userId" type="email" placeholder="abcd@ab.ck" class="input" required>
-                            <span class="icon is-small is-left">
-                                <i class="fa fa-envelope"></i>
-                            </span>
-                        </div>
-                    </div>
-                    <div class="field">
-                        <label for="password" class="label">Password</label>
-                        <div class="control has-icons-left">
-                            <input id="password" type="password" placeholder="*******" class="input" required>
-                            <span class="icon is-small is-left">
-                                <i class="fa fa-lock"></i>
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <div class="field">
-                        <button type = "button" class="button is-success custom-btn" onclick = "login()">
-                            Login
-                        </button>
-                        
-                    </div>
-                </form>
-                <div style="text-align: right;">
-                    <a onclick="location.href='/register'">회원가입</a>
-                </div>
+      <div class="columns is-centered">
+        <div class="column is-5-tablet is-4-desktop is-3-widescreen">
+          <form action="" class="box">
+            <div class="field">
+              <label for="userId" class="label">Email</label>
+              <div class="control has-icons-left">
+                <input
+                  id="userId"
+                  type="email"
+                  placeholder="abcd@ab.ck"
+                  class="input"
+                  required
+                />
+                <span class="icon is-small is-left">
+                  <i class="fa fa-envelope"></i>
+                </span>
+              </div>
             </div>
+            <div class="field">
+              <label for="password" class="label">Password</label>
+              <div class="control has-icons-left">
+                <input
+                  id="password"
+                  type="password"
+                  placeholder="*******"
+                  class="input"
+                  required
+                />
+                <span class="icon is-small is-left">
+                  <i class="fa fa-lock"></i>
+                </span>
+              </div>
+            </div>
+
+            <div class="field">
+              <button
+                type="button"
+                class="button is-success custom-btn"
+                onclick="login()"
+              >
+                Login
+              </button>
+            </div>
+          </form>
+          <div style="text-align: right">
+            <a onclick="location.href='/register'">회원가입</a>
+          </div>
         </div>
+      </div>
     </section>
 
     <!-- Optional: Include FontAwesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-
-    </body>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+  </body>
 </html>

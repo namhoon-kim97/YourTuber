@@ -207,6 +207,7 @@
     });
 
     if (channelUrls.length == youtuberComments.length) {
+      alert("시간이 소요됩니다. 대기해주세요.")
       closeModal("card-write");
       $.ajax({
         type: "POST",
@@ -290,6 +291,7 @@ function correctCard(user_nickname) {
     });
 
     if (channelUrls.length == youtuberComments.length) {
+      alert("시간이 소요됩니다. 대기해주세요.")
       closeModal("card-correct");
       $.ajax( {
 
@@ -366,7 +368,25 @@ function correctCard(user_nickname) {
 />
 {% endblock %} {% block login %}
 <div class="columns is-mobile">
-  <div class="column is-offset-11">
+  <div
+    class="is-offset-10 is-flex"
+    style="align-items: center; width: 100%"
+  >
+    <div style="flex-grow: 1; display: flex; justify-content: center">
+      <a href="/" style="margin-left: 220px">
+        <img
+          src="../static/logo.png"
+          alt="대체 텍스트"
+          style="width: 180px; height: 70px"
+        />
+      </a>
+    </div>
+    {% if nickname %}
+
+    <a class="button is-primary" onclick="openModal('card-write')" style ="margin-right: 10px;">글 작성</a>
+  
+{% endif %}
+
     {% if nickname %}
     <button class="button is-success" onclick="location.href='/logout'">
       {{ nickname }} (로그아웃)
@@ -378,13 +398,7 @@ function correctCard(user_nickname) {
     {% endif %}
   </div>
 </div>
-{% endblock %} {% block writecard %} {% if nickname %}
-<div class="columns is-mobile">
-  <div class="column is-offset-11">
-    <a class="button is-primary" onclick="openModal('card-write')">글 작성</a>
-  </div>
-</div>
-{% endif %}
+{% endblock %} {% block writecard %} 
 
 <div class="modal" id="card-write">
   <div class="modal-background"></div>
