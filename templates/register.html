@@ -1,239 +1,309 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login Page with Bulma</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
-    <link rel='stylesheet' type='text/css' href="{{url_for('static', filename='style.css')}}">
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"
-        integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
-        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
-        crossorigin="anonymous"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{{url_for('static', filename='style.css')}}"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"
+      integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+      integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
+      crossorigin="anonymous"
+    ></script>
     <style>
-        .custom-btn {
-            font-size: 17px;
-            padding: 20px 20px;
-        }
+      .custom-btn {
+        font-size: 17px;
+        padding: 20px 20px;
+      }
     </style>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            let isNicknameValid = false;
-            let isUserIdValid = false;
-            let isPasswordValid = false;
-            let debounceTimer;
+      document.addEventListener("DOMContentLoaded", function () {
+        let isNicknameValid = false;
+        let isUserIdValid = false;
+        let isPasswordValid = false;
+        let debounceTimer;
 
-            $("#nickname").on("input", function() {
-                clearTimeout(debounceTimer);
+        $("#nickname").on("input", function () {
+          clearTimeout(debounceTimer);
 
-                debounceTimer = setTimeout(function() {
-                    let nickname = $("#nickname").val();
+          debounceTimer = setTimeout(function () {
+            let nickname = $("#nickname").val();
 
-                    if (nickname.length < 3 || nickname.length > 20) {
-                        $("#nickname-feedback").text("닉네임은 3자 이상, 20자 이하로 설정해주세요.").css("color", "red");
-                        isNicknameValid = false;
-                        return;
-                    }
+            if (nickname.length < 3 || nickname.length > 20) {
+              $("#nickname-feedback")
+                .text("닉네임은 3자 이상, 20자 이하로 설정해주세요.")
+                .css("color", "red");
+              isNicknameValid = false;
+              return;
+            }
 
-                    // 특수 문자 제한 검사 (알파벳, 숫자, -, _만 허용)
-                    if (!/^[a-zA-Z0-9가-힣]+$/.test(nickname)) {
-                        $("#nickname-feedback").text("닉네임에는 알파벳, 숫자, 한글만 사용할 수 있습니다.").css("color", "red");
-                        isNicknameValid = false;
-                        return;
-                    }
+            // 특수 문자 제한 검사 (알파벳, 숫자, -, _만 허용)
+            if (!/^[a-zA-Z0-9가-힣]+$/.test(nickname)) {
+              $("#nickname-feedback")
+                .text("닉네임에는 알파벳, 숫자, 한글만 사용할 수 있습니다.")
+                .css("color", "red");
+              isNicknameValid = false;
+              return;
+            }
 
-                    $.ajax({
-                        url: '/check-nickname',
-                        type: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({nickname: nickname}),
-                        dataType: 'json',
-                        success: function(response) {
-                            if (response.exists) {
-                                // 중복이 있으면 경고 메시지 표시
-                                $("#nickname-feedback").text(response.message).css("color", "red");
-                                isNicknameValid = false;
-                            } else {
-                                // 사용 가능하면 안내 메시지 표시
-                                $("#nickname-feedback").text(response.message).css("color", "green");
-                                isNicknameValid = true;
-                            }
-                        }
-                    });
-                }, 500);
-            });
-
-            $("#userId").on("input", function() {
-                clearTimeout(debounceTimer);
-
-                debounceTimer = setTimeout(function() {
-                    let userId = $("#userId").val();
-
-                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                    if (!emailRegex.test(userId)) {
-                        $("#id-feedback").text("유효한 이메일 형식이 아닙니다.").css("color", "red");
-                        isUserIdValid = false;
-                        return;
-                    }
-                
-                    $.ajax({
-                        url: '/check-userId',
-                        type: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({userId: userId}),
-                        dataType: 'json',
-                        success: function(response) {
-                            if (response.exists) {
-                                // 중복이 있으면 경고 메시지 표시
-                                $("#id-feedback").text(response.message).css("color", "red");
-                                isUserIdValid = false;
-                            } else {
-                                // 사용 가능하면 안내 메시지 표시
-                                $("#id-feedback").text(response.message).css("color", "green");
-                                isUserIdValid = true;
-                            }
-                        }
-                    });
-                }, 500);
-            });
-
-            $("#password, #passwordConfirm").on("input", function() {
-                let password = $("#password").val();
-                let confirmPassword = $("#passwordConfirm").val();
-
-                if (password.includes(' ')){
-                    $("#password-feedback").text("비밀번호에는 공백이 포함될 수 없습니다.").css("color", "red");
-                    isPasswordValid = false;
-                    return;
-                }
-
-                // 비밀번호와 비밀번호 확인이 일치하는지 검사
-                if(password !== confirmPassword) {
-                    $("#password-feedback").text("비밀번호와 비밀번호 확인이 일치하지 않습니다.").css("color", "red");
-                    isPasswordValid = false;
+            $.ajax({
+              url: "/check-nickname",
+              type: "POST",
+              contentType: "application/json",
+              data: JSON.stringify({ nickname: nickname }),
+              dataType: "json",
+              success: function (response) {
+                if (response.exists) {
+                  // 중복이 있으면 경고 메시지 표시
+                  $("#nickname-feedback")
+                    .text(response.message)
+                    .css("color", "red");
+                  isNicknameValid = false;
                 } else {
-                    // 입력이 없는 초기 상태를 고려하여 빈 문자열일 때는 메시지를 표시하지 않음
-                    if(password.length > 0 && confirmPassword.length > 0) {
-                        $("#password-feedback").text("비밀번호가 일치합니다.").css("color", "green");
-                    } else {
-                        $("#password-feedback").text("");
-                    }
-                    isPasswordValid = true;
+                  // 사용 가능하면 안내 메시지 표시
+                  $("#nickname-feedback")
+                    .text(response.message)
+                    .css("color", "green");
+                  isNicknameValid = true;
                 }
+              },
             });
-
-            document.getElementById("registerForm").addEventListener("submit", function(e) {
-                if (!isNicknameValid || !isUserIdValid || !isPasswordValid) {
-                    e.preventDefault();
-                    alert("양식을 올바르게 채워주세요.");
-                    return false;
-                }
-
-                let formData = {
-                    'nickname': $('#nickname').val(),
-                    'userId': $('#userId').val(),
-                    'password': $('#password').val(),
-                };
-
-                $.ajax({
-                    type: "POST",
-                    url: "/api/register",
-                    data: JSON.stringify(formData),
-                    contentType: "application/json",
-                    dataType: "json",
-                    success: function(response) {
-                        if (response['result'] === "success") {
-                            window.location.href = "/login"; // 회원가입 성공 시 로그인 페이지로 리다이렉트
-                        } else {
-                            alert("회원가입이 실패하였습니다.");
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error("Error:", error);
-                    }
-                });
-            });
+          }, 500);
         });
+
+        $("#userId").on("input", function () {
+          clearTimeout(debounceTimer);
+
+          debounceTimer = setTimeout(function () {
+            let userId = $("#userId").val();
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(userId)) {
+              $("#id-feedback")
+                .text("유효한 이메일 형식이 아닙니다.")
+                .css("color", "red");
+              isUserIdValid = false;
+              return;
+            }
+
+            $.ajax({
+              url: "/check-userId",
+              type: "POST",
+              contentType: "application/json",
+              data: JSON.stringify({ userId: userId }),
+              dataType: "json",
+              success: function (response) {
+                if (response.exists) {
+                  // 중복이 있으면 경고 메시지 표시
+                  $("#id-feedback").text(response.message).css("color", "red");
+                  isUserIdValid = false;
+                } else {
+                  // 사용 가능하면 안내 메시지 표시
+                  $("#id-feedback")
+                    .text(response.message)
+                    .css("color", "green");
+                  isUserIdValid = true;
+                }
+              },
+            });
+          }, 500);
+        });
+
+        $("#password, #passwordConfirm").on("input", function () {
+          let password = $("#password").val();
+          let confirmPassword = $("#passwordConfirm").val();
+
+          if (password.includes(" ")) {
+            $("#password-feedback")
+              .text("비밀번호에는 공백이 포함될 수 없습니다.")
+              .css("color", "red");
+            isPasswordValid = false;
+            return;
+          }
+
+          // 비밀번호와 비밀번호 확인이 일치하는지 검사
+          if (password !== confirmPassword) {
+            $("#password-feedback")
+              .text("비밀번호와 비밀번호 확인이 일치하지 않습니다.")
+              .css("color", "red");
+            isPasswordValid = false;
+          } else {
+            // 입력이 없는 초기 상태를 고려하여 빈 문자열일 때는 메시지를 표시하지 않음
+            if (password.length > 0 && confirmPassword.length > 0) {
+              $("#password-feedback")
+                .text("비밀번호가 일치합니다.")
+                .css("color", "green");
+            } else {
+              $("#password-feedback").text("");
+            }
+            isPasswordValid = true;
+          }
+        });
+
+        document
+          .getElementById("registerForm")
+          .addEventListener("submit", function (e) {
+            if (!isNicknameValid || !isUserIdValid || !isPasswordValid) {
+              e.preventDefault();
+              alert("양식을 올바르게 채워주세요.");
+              return false;
+            }
+
+            let formData = {
+              nickname: $("#nickname").val(),
+              userId: $("#userId").val(),
+              password: $("#password").val(),
+            };
+
+            $.ajax({
+              type: "POST",
+              url: "/api/register",
+              data: JSON.stringify(formData),
+              contentType: "application/json",
+              dataType: "json",
+              success: function (response) {
+                if (response.result == "success") {
+                  window.location.href = "/";
+                } else {
+                  alert("회원가입이 실패하였습니다.");
+                }
+              },
+              error: function (xhr, status, error) {
+                console.error("Error:", error);
+              },
+            });
+          });
+      });
     </script>
-</head>
+  </head>
 
-<body>
+  <body>
     <section class="section">
-        <!-- upper menu -->
-        <div class="columns is-mobile">
-            <div class="column is-1 is-offset-10">
-                <button class="button is-success" onclick="location.href='/'">메인페이지</button>
-                <!-- 로그인 상태면 userNickname보이게 -->
+      <!-- upper menu -->
+      <div class="columns is-mobile">
+        <div
+          class="is-offset-10 is-flex"
+          style="align-items: center; width: 100%"
+        >
+          <div style="flex-grow: 1; display: flex; justify-content: center">
+            <a href="/" style="margin-left: 100px">
+              <img
+                src="../static/logo.png"
+                alt="대체 텍스트"
+                style="width: 180px; height: 70px"
+              />
+            </a>
+          </div>
+          <button
+            class="button is-success"
+            onclick="location.href='/'"
+            style="align-self: flex-end"
+          >
+            메인페이지
+          </button>
+        </div>
+      </div>
+
+      <hr class="has-background-grey-light" />
+
+      <div class="columns is-centered">
+        <div class="column is-5-tablet is-4-desktop is-3-widescreen">
+          <form id="registerForm" class="box">
+            <div class="field">
+              <label for="nickname" class="label">Nickname</label>
+              <div class="control has-icons-left">
+                <input
+                  id="nickname"
+                  type="text"
+                  placeholder=""
+                  class="input"
+                  required
+                />
+              </div>
+              <p id="nickname-feedback"></p>
             </div>
-        </div>
-        <div class="columns is-mobile">
-            <div class="column is-3 is-offset-4" id="logo">
-                <!-- 여기에 로고 -->logo
-            </div>  
-        </div>
-        <div class="column is-1 is-offset-10">
-        </div>
-        </div>
 
-        <hr class="has-background-grey-light" />
-
-        <div class="columns is-centered">
-            <div class="column is-5-tablet is-4-desktop is-3-widescreen">
-                <form id = "registerForm" class="box">
-                    <div class="field">
-                        <label for="nickname" class="label">Nickname</label>
-                        <div class="control has-icons-left">
-                            <input id="nickname" type="text" placeholder="" class="input" required>
-                        </div>
-                        <p id="nickname-feedback"></p>
-                    </div>
-
-                    <div class="field">
-                        <label for="userId" class="label">Email</label>
-                        <div class="control has-icons-left">
-                            <input id="userId" type="email" placeholder="abcd@ab.ck" class="input" required>
-                            <span class="icon is-small is-left">
-                                <i class="fa fa-envelope"></i>
-                            </span>
-                        </div>
-                        <p id="id-feedback"></p>
-                    </div>
-                    <div class="field">
-                        <label for="password" class="label">Password</label>
-                        <div class="control has-icons-left">
-                            <input id="password" type="password" placeholder="*******" class="input" required>
-                            <span class="icon is-small is-left">
-                                <i class="fa fa-lock"></i>
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="field">
-                        <label for="passwordConfirm" class="label">Password Confirm</label>
-                        <div class="control has-icons-left">
-                            <input id="passwordConfirm" type="password" placeholder="*******" class="input" required>
-                            <span class="icon is-small is-left">
-                                <i class="fa fa-lock"></i>
-                            </span>
-                        </div>
-                        <p id="password-feedback"></p>
-                    </div>
-
-                    <div class="field">
-                        <button class="button is-success custom-btn" type = "submit">
-                            회원가입
-                        </button>
-                    </div>
-                </form>
+            <div class="field">
+              <label for="userId" class="label">Email</label>
+              <div class="control has-icons-left">
+                <input
+                  id="userId"
+                  type="email"
+                  placeholder="abcd@ab.ck"
+                  class="input"
+                  required
+                />
+                <span class="icon is-small is-left">
+                  <i class="fa fa-envelope"></i>
+                </span>
+              </div>
+              <p id="id-feedback"></p>
             </div>
+            <div class="field">
+              <label for="password" class="label">Password</label>
+              <div class="control has-icons-left">
+                <input
+                  id="password"
+                  type="password"
+                  placeholder="*******"
+                  class="input"
+                  required
+                />
+                <span class="icon is-small is-left">
+                  <i class="fa fa-lock"></i>
+                </span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="passwordConfirm" class="label"
+                >Password Confirm</label
+              >
+              <div class="control has-icons-left">
+                <input
+                  id="passwordConfirm"
+                  type="password"
+                  placeholder="*******"
+                  class="input"
+                  required
+                />
+                <span class="icon is-small is-left">
+                  <i class="fa fa-lock"></i>
+                </span>
+              </div>
+              <p id="password-feedback"></p>
+            </div>
+
+            <div class="field">
+              <button class="button is-success custom-btn" type="submit">
+                회원가입
+              </button>
+            </div>
+          </form>
+          <div style="text-align: right">
+            <a onclick="location.href='/login'">로그인</a>
+          </div>
         </div>
+      </div>
     </section>
 
     <!-- Optional: Include FontAwesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-
-</body>
-
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+  </body>
 </html>
